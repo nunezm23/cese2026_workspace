@@ -160,7 +160,6 @@ int main(void)
   uint8_t counter = 0;
   uint8_t offset_period = 0;
   delayInit(&delay_st, init_duration);
-  HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
   /* USER CODE END 2 */
 
   /* Infinite loop */
