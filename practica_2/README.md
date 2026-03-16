@@ -1,4 +1,4 @@
-# Módulo de Retardos No Bloqueantes (Non-Blocking Delays)
+# Practice 2: Non-Blocking delays module
 
 This project implements a C-written software module to manage non-blocking delays. Unlike traditional delay functions, such as delay() or HAL_Delay(), this implementation allows the microcontroller to execute other tasks while waiting for the specified time to elapse.
 
