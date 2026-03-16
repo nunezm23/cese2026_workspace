@@ -45,17 +45,39 @@ UART_HandleTypeDef huart2;
 /* USER CODE BEGIN PV */
 
 /**
- * @brief Instance of delay_t struct.
+ * @brief Invalid tick parameter to set in delayWrite function when the duration is 0.
+ * */
+#define INVALID_TICK_PARAMETER 0
+
+/**
+  * @brief Number of half-cycles to change state in LED for 50% duty cycle.
+  */
+#define NBR_HALF_CYCLES		10
+
+/**
+ * @brief Initial tick duration for the first delay.
+ * */
+#define INIT_TICK_DURATION	2000
+
+/**
+ * @brief Initialization for variables or reset values in the code in zero.
+ * */
+#define INITIAL_VALUE   0
+
+/**
+ * @brief Instance of delay_t struct initialization with zero values for parameters.
  * */
 delay_t delay_st = {0};
 
 /**
  * @brief Instance of tick_t to define the init duration of delay.
  * */
-tick_t init_duration = 2000;
+tick_t init_duration = INIT_TICK_DURATION;
 
 /**
  * @brief Array of different periods to set in blink LED code.
+ * @warning The values of the array must be greater than 0. The values of the array are in milliseconds.
+ * 
  * */
 uint16_t period_ms[] = {1000, 200, 100};
 
@@ -80,7 +102,7 @@ static void MX_USART2_UART_Init(void);
 
 void delayInit( delay_t * delay, tick_t duration )
 {
-	if(NULL == delay)
+	if(NULL == delay || INVALID_TICK_PARAMETER == duration)
 	{
 		return;
 	}
@@ -117,7 +139,7 @@ bool_t delayRead( delay_t * delay )
 
 void delayWrite( delay_t * delay, tick_t duration )
 {
-	if(NULL == delay)
+	if(NULL == delay || INVALID_TICK_PARAMETER == duration)
 	{
 		return;
 	}
@@ -157,8 +179,8 @@ int main(void)
   MX_GPIO_Init();
   MX_USART2_UART_Init();
   /* USER CODE BEGIN 2 */
-  uint8_t counter = 0;
-  uint8_t offset_period = 0;
+  uint8_t counter = INITIAL_VALUE; /**< Counter for half-cycles initialization*/
+  uint8_t offset_period = INITIAL_VALUE; /**< Offset for period array to iterate through*/
   delayInit(&delay_st, init_duration);
   /* USER CODE END 2 */
 
@@ -175,11 +197,11 @@ int main(void)
 		  {
 			  if(size_period_array == offset_period)
 			  {
-				  offset_period = 0;
+				  offset_period = INITIAL_VALUE;
 			  }
 			  delayWrite(&delay_st, period_ms[offset_period]);
 			  offset_period++;
-			  counter=0;
+			  counter=INITIAL_VALUE;
 		  }
 		  counter++;
 	  }

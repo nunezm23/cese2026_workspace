@@ -67,15 +67,6 @@ typedef struct{
 /* Exported macro ------------------------------------------------------------*/
 /* USER CODE BEGIN EM */
 
-/**
-  * @brief Number of half-cycles to change state in LED for 50% duty cycle.
-  */
-#define NBR_HALF_CYCLES		10
-
-/**
-  * @brief Duty cycle
-  */
-#define DUTY_CYCLE			50
 /* USER CODE END EM */
 
 /* Exported functions prototypes ---------------------------------------------*/
