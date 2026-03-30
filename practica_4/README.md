@@ -78,7 +78,7 @@ bool_t readKey(void);
 ## API Common
 API_COMMON was created to promote modularity and independence among components. It includes the necessary headers for integrating unsigned and boolean variable types, as well as the required HAL definitions.
 ### Dependencies
-For custom data types to compile correctly, the API_delay includes the following standard C libraries:
+For custom data types to compile correctly, the API_common includes the following standard C and HAL libraries:
 * `<stdint.h>`: For the `uint32_t` type (renamed to `tick_t`).
 * `<stdbool.h>`: For the `bool` type (renamed to `bool_t`).
 * `stm32f4xx_hal.h`: For the necessary HAL functions definitions.
