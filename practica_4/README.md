@@ -14,6 +14,9 @@ The project is divided into three main development areas.
 2. Debounce: The debounce software is built in. After 40 milliseconds have elapsed, the software checks to see if the state in the finite-state machine should change.
 3. Non-Blocking Delay: Non-blocking delays are implemented to check the button's transition state and perform other necessary validations
 
+> [!WARNING]
+> In order to modularise and decouple the delay and debounce APIs, two initialisations are carried out in main.c: one for the non-blocking delay of the LED’s blinking, and another for the debounce time required to transition between states in the FSM.
+
 # Code Structure
 
 ## API Delay
