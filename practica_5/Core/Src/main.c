@@ -18,7 +18,6 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
-#include "API_uart.h"
 #include "API_cmdparser.h"
 
 /* Private includes ----------------------------------------------------------*/

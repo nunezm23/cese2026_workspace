@@ -83,6 +83,11 @@ static char buffer_cmd[MAX_UART_SIZE] = {API_RESET_VALUE};
 static uint16_t buffer_cmd_size = API_RESET_VALUE;
 
 /**
+ * @brief Flag to indicate if the command parser API has been initialized.
+ */
+static bool_t is_ParsedInit = false;
+
+/**
  * @brief Structure for defining serial options.
  */
 typedef struct {
@@ -359,11 +364,16 @@ void cmdParserInit(void)
 	}
 	const char *log = "HINT: TYPE HELP FOR SHOW COMMANDS AVAILABLES:\r\n";
 	uartSendString((uint8_t *)log);
+	is_ParsedInit = true;
 	return;
 }
 
 void cmdPoll(void)
 {
+	if(false == is_ParsedInit)
+	{
+		return;
+	}
 	uint8_t rx_byte = API_RESET_VALUE;
 	static uint8_t current_cmd;
 
