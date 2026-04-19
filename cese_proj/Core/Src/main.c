@@ -21,7 +21,8 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "i2c_lcd.h"
+#include "API_lcd.h"
+#include "APP_system.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
