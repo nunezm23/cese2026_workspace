@@ -19,6 +19,13 @@
 #define GPPUA   0x0C  // Pull-Up Resistor Register
 #define MCP_GPIOA   0x12  // General Purpose I/O Port Register
 
+
+#define SPI_CS_Pin GPIO_PIN_6
+#define SPI_CS_GPIO_Port GPIOB
+
+
+static SPI_HandleTypeDef hspi1;
+
 char keymap[4][4] = {
   {'1', '2', '3', 'A'},
   {'4', '5', '6', 'B'},
@@ -74,4 +81,57 @@ char ScanKeypad(void) {
         }
     }
     return 0; // No key pressed
+}
+
+static MCP_RET mcp_config_params(void)
+{
+	// 1. Configure Port A Direction
+	// GPA0-GPA3 (Rows) = Outputs (0)
+	// GPA4-GPA7 (Cols) = Inputs  (1)
+	// Therefore IODIRA = 1111 0000 = 0xF0
+	MCP_WriteReg(IODIRA, 0xF0);
+
+	// 2. Enable Pull-Up resistors on the input columns (GPA4-GPA7)
+	// We want GPPUA = 1111 0000 = 0xF0
+	MCP_WriteReg(GPPUA, 0xF0);
+
+	return MCP_OK;
+}
+
+static MCP_RET mcp_spi_init(void)
+{
+	hspi1.Instance = SPI1;
+	hspi1.Init.Mode = SPI_MODE_MASTER;
+	hspi1.Init.Direction = SPI_DIRECTION_2LINES;
+	hspi1.Init.DataSize = SPI_DATASIZE_8BIT;
+	hspi1.Init.CLKPolarity = SPI_POLARITY_LOW;
+	hspi1.Init.CLKPhase = SPI_PHASE_1EDGE;
+	hspi1.Init.NSS = SPI_NSS_SOFT;
+	hspi1.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_16;
+	hspi1.Init.FirstBit = SPI_FIRSTBIT_MSB;
+	hspi1.Init.TIMode = SPI_TIMODE_DISABLE;
+	hspi1.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
+	hspi1.Init.CRCPolynomial = 10;
+	if (HAL_SPI_Init(&hspi1) != HAL_OK)
+	{
+		//Error_Handler();
+		return MCP_ERR_INIT;
+	}
+	return MCP_OK;
+}
+
+MCP_RET mcp_init(void)
+{
+	MCP_RET init_ret = MCP_ERR_UNKNOWN;
+	init_ret = mcp_spi_init();
+	if(MCP_OK != init_ret)
+	{
+		return init_ret;
+	}
+	init_ret = mcp_config_params();
+	if(MCP_OK != init_ret)
+	{
+		return init_ret;
+	}
+	return init_ret;
 }
