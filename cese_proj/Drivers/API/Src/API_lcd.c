@@ -11,10 +11,11 @@
 #include "API_lcd.h"
 
 // Obtenemos la referencia al I2C1 que CubeIDE generó en main.c
-extern I2C_HandleTypeDef hi2c1;
 
 // Dirección I2C desplazada a la izquierda (0x27 << 1)
 #define SLAVE_ADDRESS_LCD 0x4E
+
+static I2C_HandleTypeDef hi2c1;
 
 void lcd_send_cmd(char cmd) {
     char data_u, data_l;
@@ -50,7 +51,27 @@ void lcd_send_data(char data) {
     HAL_I2C_Master_Transmit(&hi2c1, SLAVE_ADDRESS_LCD, (uint8_t *) data_t, 4, 100);
 }
 
-void lcd_init(void) {
+static LCD_RET lcd_i2c_init(void)
+{
+  hi2c1.Instance = I2C1;
+  hi2c1.Init.ClockSpeed = 100000;
+  hi2c1.Init.DutyCycle = I2C_DUTYCYCLE_2;
+  hi2c1.Init.OwnAddress1 = 0;
+  hi2c1.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
+  hi2c1.Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
+  hi2c1.Init.OwnAddress2 = 0;
+  hi2c1.Init.GeneralCallMode = I2C_GENERALCALL_DISABLE;
+  hi2c1.Init.NoStretchMode = I2C_NOSTRETCH_DISABLE;
+  if (HAL_I2C_Init(&hi2c1) != HAL_OK)
+  {
+    //Error_Handler();
+  }
+
+  return LCD_OK;
+}
+
+static LCD_RET lcd_config(void)
+{
     // Secuencia mágica de inicialización para 4-bits requerida por el chip HD44780
     HAL_Delay(50);
     lcd_send_cmd(0x30);
@@ -71,6 +92,15 @@ void lcd_init(void) {
     lcd_send_cmd(0x06); // Modo de entrada: incrementar cursor
     HAL_Delay(1);
     lcd_send_cmd(0x0C); // Encender display, apagar cursor
+    return LCD_OK;
+}
+
+LCD_RET lcd_init(void)
+{
+	LCD_RET init_ret = LCD_OK;
+	lcd_i2c_init();
+	lcd_config();
+	return init_ret;
 }
 
 void lcd_send_string(char *str) {

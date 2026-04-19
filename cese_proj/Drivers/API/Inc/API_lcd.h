@@ -13,7 +13,19 @@
 
 #include "API_common.h"
 
-void lcd_init(void);
+#define	LCD_RET		int8_t
+
+
+typedef enum
+{
+	LCD_OK = 0,
+	LCD_ERR_INIT,
+	LCD_ERR_NULL_POINTER,
+	LCD_ERR_INVALID_PARAMS,
+	LCD_ERR_UNKNOWN,
+}lcd_err_t;
+
+LCD_RET lcd_init(void);
 void lcd_send_cmd(char cmd);
 void lcd_send_data(char data);
 void lcd_send_string(char *str);
