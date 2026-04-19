@@ -22,6 +22,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "API_lcd.h"
+#include "API_mcp23s17.h"
 #include "APP_system.h"
 /* USER CODE END Includes */
 
@@ -64,71 +65,12 @@ static void MX_SPI1_Init(void);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 /* USER CODE BEGIN 0 */
-#define MCP23S17_ADDR 0x00 // Hardware address pins tied to GND
-#define OPCODE_WRITE  (0x40 | (MCP23S17_ADDR << 1))
-#define OPCODE_READ   (0x41 | (MCP23S17_ADDR << 1))
-
-// MCP23S17 Register Addresses (BANK = 0)
-#define IODIRA  0x00  // I/O Direction Register
-#define GPPUA   0x0C  // Pull-Up Resistor Register
-#define MCP_GPIOA   0x12  // General Purpose I/O Port Register
-
-char keymap[4][4] = {
-  {'1', '2', '3', 'A'},
-  {'4', '5', '6', 'B'},
-  {'7', '8', '9', 'C'},
-  {'*', '0', '#', 'D'}
-};
 
 // Function to write to an MCP23S17 register
-void MCP_WriteReg(uint8_t reg, uint8_t data) {
-    uint8_t tx_data[3] = {OPCODE_WRITE, reg, data};
-    HAL_GPIO_WritePin(SPI_CS_GPIO_Port, SPI_CS_Pin, GPIO_PIN_RESET); // Pull CS Low
-    HAL_SPI_Transmit(&hspi1, tx_data, 3, 100);                       // Send 3 bytes
-    HAL_GPIO_WritePin(SPI_CS_GPIO_Port, SPI_CS_Pin, GPIO_PIN_SET);   // Pull CS High
-}
+#define IODIRA  0x00  // I/O Direction Register
+#define GPPUA   0x0C  // Pull-Up Resistor Register
 
-// Function to read from an MCP23S17 register
-uint8_t MCP_ReadReg(uint8_t reg) {
-    uint8_t tx_data[2] = {OPCODE_READ, reg};
-    uint8_t rx_data = 0;
 
-    HAL_GPIO_WritePin(SPI_CS_GPIO_Port, SPI_CS_Pin, GPIO_PIN_RESET);
-    HAL_SPI_Transmit(&hspi1, tx_data, 2, 100);                       // Send Opcode & Reg
-    HAL_SPI_Receive(&hspi1, &rx_data, 1, 100);                       // Read the byte back
-    HAL_GPIO_WritePin(SPI_CS_GPIO_Port, SPI_CS_Pin, GPIO_PIN_SET);
-
-    return rx_data;
-}
-
-// Function to scan the matrix keypad
-char ScanKeypad(void) {
-    for (int row = 0; row < 4; row++) {
-        // Drive only one row LOW at a time (GPA0 to GPA3).
-        // 0x0F means all rows high. ~(1 << row) pulls one row low.
-        uint8_t rowData = ~(1 << row) & 0x0F;
-        MCP_WriteReg(MCP_GPIOA, rowData);
-
-        // Give a tiny delay for signal to settle
-        HAL_Delay(1);
-
-        // Read the columns (GPA4 to GPA7)
-        uint8_t portStatus = MCP_ReadReg(MCP_GPIOA);
-
-        // Shift right by 4 to get columns to lower bits, isolate them, and invert
-        // so a pressed button (which goes low) reads as a '1' bit
-        uint8_t cols = (~(portStatus >> 4)) & 0x0F;
-
-        if (cols != 0x00) { // If any column bit is 1, a button is pressed
-            for (int col = 0; col < 4; col++) {
-                if (cols & (1 << col)) {
-                    return keymap[row][col]; // Return the mapped key
-                }
-            }
-        }
-    }
-    return 0; // No key pressed
-}
 /* USER CODE END 0 */
 
 /**
