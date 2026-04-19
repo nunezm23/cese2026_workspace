@@ -29,6 +29,8 @@ void MCP_WriteReg(uint8_t reg, uint8_t data);
 uint8_t MCP_ReadReg(uint8_t reg);
 char ScanKeypad(void);
 
+MCP_RET mcp_get_spi_port(void **spi_port);
+MCP_RET mcp_get_spi_cs_pin(uint16_t *spi_pin);
 MCP_RET mcp_init(void);
 
 

@@ -120,6 +120,18 @@ static MCP_RET mcp_spi_init(void)
 	return MCP_OK;
 }
 
+MCP_RET mcp_get_spi_port(void **spi_port)
+{
+	*spi_port = (void *)SPI_CS_GPIO_Port;
+	return MCP_OK;
+}
+
+MCP_RET mcp_get_spi_cs_pin(uint16_t *spi_pin)
+{
+	*spi_pin = SPI_CS_Pin;
+	return MCP_OK;
+}
+
 MCP_RET mcp_init(void)
 {
 	MCP_RET init_ret = MCP_ERR_UNKNOWN;
