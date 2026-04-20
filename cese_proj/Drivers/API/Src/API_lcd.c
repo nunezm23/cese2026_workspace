@@ -120,5 +120,5 @@ void lcd_put_cur(int row, int col) {
 
 void lcd_clear(void) {
     lcd_send_cmd(0x01);
-    HAL_Delay(2); // Limpiar toma más tiempo
+    HAL_Delay(1); // Limpiar toma más tiempo
 }

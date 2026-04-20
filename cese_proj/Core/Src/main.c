@@ -97,7 +97,7 @@ int main(void)
   lcd_send_string("Marcos Nunez");
 
   lcd_put_cur(2, 0);
-  lcd_send_string("PdM change");
+  lcd_send_string("PdM Project");
 
   lcd_put_cur(3, 0);
   lcd_send_string("CESE 2026");

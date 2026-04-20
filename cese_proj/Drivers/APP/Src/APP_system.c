@@ -109,6 +109,21 @@ static SYSTEM_RET system_idle_msg(void)
 	return SYS_OK;
 }
 
+static SYSTEM_RET system_access_msg(void)
+{
+	lcd_clear();
+	lcd_put_cur(0, 0);
+	lcd_send_string("Security System");
+	lcd_put_cur(1, 0);
+	lcd_send_string("Access");
+	lcd_put_cur(2, 0);
+	lcd_send_string("Successfull");
+	lcd_put_cur(3, 0);
+	lcd_send_string("CESE 2026 Co26");
+	HAL_Delay(2000);
+	return SYS_OK;
+}
+
 static SYSTEM_RET system_reset_resources(void)
 {
 	memset(login_user_password, 0xFF, MAX_SIZE_PASSWORD);
@@ -225,6 +240,7 @@ SYSTEM_RET system_fsm_state_update(void)
 		idle_msg = true;
 		break;
 	case SYSTEM_ACCESS:
+		system_access_msg();
 		system_state = SYSTEM_IDLE;
 		idle_msg = true;
 		break;
