@@ -52,6 +52,8 @@ static char curr_password[MAX_SIZE_PASSWORD] = {0xFF, 0xFF, 0xFF, 0xFF};
 
 static uint8_t fail_pwd_count = APP_RESET_VALUE;
 
+static uint8_t idle_msg = true;
+
 static char login_user_password[MAX_SIZE_PASSWORD] = {0XFF};
 static uint8_t login_pwd_offset = APP_RESET_VALUE;
 
@@ -156,6 +158,12 @@ static bool_t system_verify_password(char key_pressed)
 			system_state = SYSTEM_ACCESS;
 		}else
 		{
+			if(2 == fail_pwd_count)
+			{
+				system_state = SYSTEM_IDLE;
+				idle_msg = true;
+				return pwd_ret;
+			}
 			fail_pwd_count++;
 			lcd_put_cur(3, 0);
 			uint8_t attempt_left = 3 - fail_pwd_count;
@@ -163,6 +171,8 @@ static bool_t system_verify_password(char key_pressed)
 			lcd_send_data(caracter_lcd);
 			lcd_put_cur(3, 2);
 			lcd_send_string("Attempt left");
+			lcd_put_cur(2, APP_RESET_VALUE);
+			lcd_send_string("               ");
 			system_state = SYSTEM_ENTER_PASSWORD;
 			system_reset_resources();
 		}
@@ -173,7 +183,6 @@ static bool_t system_verify_password(char key_pressed)
 SYSTEM_RET system_fsm_state_update(void)
 {
 	system_key_pressed = mcp_scan_keypad();
-	static uint8_t idle_msg = true;
 	switch (system_state)
 	{
 	case SYSTEM_IDLE:
