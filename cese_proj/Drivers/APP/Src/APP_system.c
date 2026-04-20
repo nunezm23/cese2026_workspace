@@ -50,6 +50,8 @@ static delay_t delay_debounce_bt = {APP_RESET_VALUE};
 
 static char curr_password[MAX_SIZE_PASSWORD] = {0xFF, 0xFF, 0xFF, 0xFF};
 
+static uint8_t fail_pwd_count = APP_RESET_VALUE;
+
 static char login_user_password[MAX_SIZE_PASSWORD] = {0XFF};
 static uint8_t login_pwd_offset = APP_RESET_VALUE;
 
@@ -105,6 +107,13 @@ static SYSTEM_RET system_idle_msg(void)
 	return SYS_OK;
 }
 
+static SYSTEM_RET system_reset_resources(void)
+{
+	memset(login_user_password, 0xFF, MAX_SIZE_PASSWORD);
+	login_pwd_offset = APP_RESET_VALUE;
+	return SYS_OK;
+}
+
 static SYSTEM_RET system_save_password(void)
 {
 	lcd_clear();
@@ -137,7 +146,7 @@ static bool_t system_verify_password(char key_pressed)
 	if(login_pwd_offset < MAX_SIZE_PASSWORD)
 	{
 		login_user_password[login_pwd_offset] = key_pressed;
-		lcd_put_cur(3, login_pwd_offset);
+		lcd_put_cur(2, login_pwd_offset);
 		lcd_send_data(key_pressed);
 		login_pwd_offset++;
 	}else if(login_pwd_offset == MAX_SIZE_PASSWORD)
@@ -147,7 +156,15 @@ static bool_t system_verify_password(char key_pressed)
 			system_state = SYSTEM_ACCESS;
 		}else
 		{
+			fail_pwd_count++;
+			lcd_put_cur(3, 0);
+			uint8_t attempt_left = 3 - fail_pwd_count;
+			char caracter_lcd = attempt_left + '0';
+			lcd_send_data(caracter_lcd);
+			lcd_put_cur(3, 2);
+			lcd_send_string("Attempt left");
 			system_state = SYSTEM_ENTER_PASSWORD;
+			system_reset_resources();
 		}
 	}
 	return pwd_ret;
@@ -162,6 +179,7 @@ SYSTEM_RET system_fsm_state_update(void)
 	case SYSTEM_IDLE:
 		if(idle_msg)
 		{
+			system_reset_resources();
 			system_idle_msg();
 			idle_msg = false;
 		}
@@ -199,6 +217,7 @@ SYSTEM_RET system_fsm_state_update(void)
 		break;
 	case SYSTEM_ACCESS:
 		system_state = SYSTEM_IDLE;
+		idle_msg = true;
 		break;
 	default:
 		break;
