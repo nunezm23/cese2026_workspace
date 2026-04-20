@@ -102,41 +102,15 @@ int main(void)
   lcd_put_cur(3, 0);
   lcd_send_string("CESE 2026");
 
-
-
-
-
-  char pressed_key = 0;
+  HAL_Delay(2000);
+  lcd_clear();
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-
-    /* USER CODE END WHILE */
-
-    /* USER CODE BEGIN 3 */
-      pressed_key = ScanKeypad();
-
-      // 2. Check if a valid key was returned
-      if (pressed_key != 0) {
-
-          // --- LCD PRINTING SECTION ---
-          // (Note: Update these function names to match your specific LCD library)
-
-          // Clear the LCD or move the cursor to the starting position
-      	lcd_put_cur(0, 0); // Move cursor to Row 0, Column 0
-          lcd_send_string("Key Pressed:    "); // Pad with spaces to clear old chars
-
-          // Move cursor to the second line to display the key
-          lcd_put_cur(1, 0); // Move cursor to Row 1, Column 0
-          lcd_send_data(pressed_key); // Print the actual char variable
-          // ----------------------------
-
-          // 3. Debounce delay so a single button press isn't read 50 times in a row
-          HAL_Delay(250);
-      }
+	  system_fsm_state_update();
   }
   /* USER CODE END 3 */
 }

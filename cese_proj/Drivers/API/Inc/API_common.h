@@ -22,6 +22,16 @@
  * */
 #define API_RESET_VALUE		0
 
+/**
+ * @brief Bool type redefinition
+ * */
+typedef bool bool_t;
+
+/**
+ * @brief Tick type of uint32_t
+ * */
+typedef uint32_t tick_t;
+
 
 
 #endif /* __API_common_H */

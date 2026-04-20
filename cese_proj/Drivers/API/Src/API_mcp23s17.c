@@ -55,7 +55,7 @@ uint8_t MCP_ReadReg(uint8_t reg) {
 }
 
 // Function to scan the matrix keypad
-char ScanKeypad(void) {
+char mcp_scan_keypad(void) {
     for (int row = 0; row < 4; row++) {
         // Drive only one row LOW at a time (GPA0 to GPA3).
         // 0x0F means all rows high. ~(1 << row) pulls one row low.

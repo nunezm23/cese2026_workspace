@@ -5,14 +5,17 @@
 
 # Add inputs and outputs from these tool invocations to the build variables 
 C_SRCS += \
+../Drivers/API/Src/API_delay.c \
 ../Drivers/API/Src/API_lcd.c \
 ../Drivers/API/Src/API_mcp23s17.c 
 
 OBJS += \
+./Drivers/API/Src/API_delay.o \
 ./Drivers/API/Src/API_lcd.o \
 ./Drivers/API/Src/API_mcp23s17.o 
 
 C_DEPS += \
+./Drivers/API/Src/API_delay.d \
 ./Drivers/API/Src/API_lcd.d \
 ./Drivers/API/Src/API_mcp23s17.d 
 
@@ -24,7 +27,7 @@ Drivers/API/Src/%.o Drivers/API/Src/%.su Drivers/API/Src/%.cyclo: ../Drivers/API
 clean: clean-Drivers-2f-API-2f-Src
 
 clean-Drivers-2f-API-2f-Src:
-	-$(RM) ./Drivers/API/Src/API_lcd.cyclo ./Drivers/API/Src/API_lcd.d ./Drivers/API/Src/API_lcd.o ./Drivers/API/Src/API_lcd.su ./Drivers/API/Src/API_mcp23s17.cyclo ./Drivers/API/Src/API_mcp23s17.d ./Drivers/API/Src/API_mcp23s17.o ./Drivers/API/Src/API_mcp23s17.su
+	-$(RM) ./Drivers/API/Src/API_delay.cyclo ./Drivers/API/Src/API_delay.d ./Drivers/API/Src/API_delay.o ./Drivers/API/Src/API_delay.su ./Drivers/API/Src/API_lcd.cyclo ./Drivers/API/Src/API_lcd.d ./Drivers/API/Src/API_lcd.o ./Drivers/API/Src/API_lcd.su ./Drivers/API/Src/API_mcp23s17.cyclo ./Drivers/API/Src/API_mcp23s17.d ./Drivers/API/Src/API_mcp23s17.o ./Drivers/API/Src/API_mcp23s17.su
 
 .PHONY: clean-Drivers-2f-API-2f-Src
 
