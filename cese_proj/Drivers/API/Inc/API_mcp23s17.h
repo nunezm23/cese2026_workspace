@@ -29,6 +29,7 @@ typedef enum
 	MCP_ERR_NULL_POINTER,   /**< Null pointer error */
 	MCP_ERR_INVALID_PARAMS, /**< Invalid parameters error */
 	MCP_ERR_UNKNOWN,        /**< Unknown error */
+	MCP_ERR_SPI_COMM,		/**< SPI error communication.*/
 }mcp_err_t;
 
 /**

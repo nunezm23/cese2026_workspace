@@ -359,7 +359,7 @@ static SYSTEM_RET system_gpio_init(void)
   /* Validate retrieved port pointer */
   if (NULL == mcp_spi_port)
   {
-    return SYS_ERROR; /* Invalid GPIO port retrieved */
+    return SYS_ERR_NULL_POINTER; /* Invalid GPIO port retrieved */
   }
 
   /* Configure GPIO pin Output Level */
@@ -382,10 +382,10 @@ static SYSTEM_RET system_delay_init(void)
 	/* Validate delay structure before initialization */
 	if (NULL == &delay_debounce_bt)
 	{
-		return SYS_ERROR;
+		return SYS_ERR_NULL_POINTER;
 	}
 	
-	ret = delayInit(&delay_debounce_bt, NO_ACTION_INIT_TICK);
+	delayInit(&delay_debounce_bt, NO_ACTION_INIT_TICK);
 	return ret;
 }
 
@@ -470,7 +470,7 @@ SYSTEM_RET system_fsm_state_update(void)
 		idle_msg = true;
 		break;
 	default:
-		return SYS_ERROR; /* Invalid state detected */
+		return SYS_ERR_UNKNOWN; /* Invalid state detected */
 	}
 	HAL_Delay(250);
 	return ret;

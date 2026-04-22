@@ -97,13 +97,6 @@ static MCP_RET MCP_WriteReg(uint8_t reg, uint8_t data);
 static MCP_RET MCP_ReadReg(uint8_t reg, uint8_t *data);
 
 /**
- * @brief Scans the keypad matrix and returns the pressed key.
- * @return char Character representing the pressed key, or 0 if no key is pressed.
- * @note Performs row-by-row scanning with debounce delay.
- * */
-static char mcp_scan_keypad(void);
-
-/**
  * @brief Configures MCP23S17 port A for keypad matrix operation.
  * @return MCP_RET Status code.
  * @retval MCP_OK on successful configuration.
@@ -120,26 +113,6 @@ static MCP_RET mcp_config_params(void);
  * @note Configures SPI1 in master mode with appropriate timing parameters.
  * */
 static MCP_RET mcp_spi_init(void);
-
-/**
- * @brief Retrieves the SPI chip select GPIO port.
- * @param[out] spi_port Pointer to store the GPIO port address.
- * @return MCP_RET Status code.
- * @retval MCP_OK on success.
- * @retval MCP_ERR_NULL if spi_port is NULL.
- * @note Used by peripheral initialization routines.
- * */
-static MCP_RET mcp_get_spi_port_internal(void **spi_port);
-
-/**
- * @brief Retrieves the SPI chip select GPIO pin number.
- * @param[out] spi_pin Pointer to store the GPIO pin value.
- * @return MCP_RET Status code.
- * @retval MCP_OK on success.
- * @retval MCP_ERR_NULL if spi_pin is NULL.
- * @note Used by peripheral initialization routines.
- * */
-static MCP_RET mcp_get_spi_cs_pin_internal(uint16_t *spi_pin);
 
 static MCP_RET MCP_WriteReg(uint8_t reg, uint8_t data)
 {
@@ -158,7 +131,7 @@ static MCP_RET MCP_WriteReg(uint8_t reg, uint8_t data)
     /* Validate SPI transmission */
     if (HAL_OK != hal_ret)
     {
-        return MCP_ERR_SPI;
+        return MCP_ERR_SPI_COMM;
     }
     
     return MCP_OK;
@@ -173,7 +146,7 @@ static MCP_RET MCP_ReadReg(uint8_t reg, uint8_t *data)
     /* Validate input parameter */
     if (NULL == data)
     {
-        return MCP_ERR_NULL;
+        return MCP_ERR_NULL_POINTER;
     }
     
     /* Pull chip select low to enable device */
@@ -184,7 +157,7 @@ static MCP_RET MCP_ReadReg(uint8_t reg, uint8_t *data)
     if (HAL_OK != hal_ret)
     {
         HAL_GPIO_WritePin(SPI_CS_GPIO_Port, SPI_CS_Pin, GPIO_PIN_SET);
-        return MCP_ERR_SPI;
+        return MCP_ERR_SPI_COMM;
     }
     
     /* Receive the register data */
@@ -196,14 +169,14 @@ static MCP_RET MCP_ReadReg(uint8_t reg, uint8_t *data)
     /* Validate SPI reception */
     if (HAL_OK != hal_ret)
     {
-        return MCP_ERR_SPI;
+        return MCP_ERR_SPI_COMM;
     }
     
     *data = rx_data;
     return MCP_OK;
 }
 
-static char mcp_scan_keypad(void)
+char mcp_scan_keypad(void)
 {
     for (uint8_t row = 0; row < 4U; row++)
     {
@@ -302,7 +275,7 @@ MCP_RET mcp_get_spi_port(void **spi_port)
 	/* Validate input parameter */
 	if (NULL == spi_port)
 	{
-		return MCP_ERR_NULL; /* Invalid pointer provided */
+		return MCP_ERR_NULL_POINTER; /* Invalid pointer provided */
 	}
 	
 	*spi_port = (void *)SPI_CS_GPIO_Port;
@@ -314,7 +287,7 @@ MCP_RET mcp_get_spi_cs_pin(uint16_t *spi_pin)
 	/* Validate input parameter */
 	if (NULL == spi_pin)
 	{
-		return MCP_ERR_NULL; /* Invalid pointer provided */
+		return MCP_ERR_NULL_POINTER; /* Invalid pointer provided */
 	}
 	
 	*spi_pin = SPI_CS_Pin;
