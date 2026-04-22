@@ -11,11 +11,11 @@
 #ifndef __APP_system_H /**< To prevent recursive inclusion*/
 #define __APP_system_H
 
-#include <stdint.h>
+#include "API_common.h"
 
 #define SYSTEM_RET		int8_t
 
-#define APP_RESET_VALUE	0 
+#define APP_RESET_VALUE		API_RESET_VALUE
 
 typedef enum
 {

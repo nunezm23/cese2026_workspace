@@ -8,13 +8,15 @@
   ******************************************************************************
 */
 
+
 #include "APP_system.h"
 #include "API_mcp23s17.h"
 #include "API_lcd.h"
 #include "API_delay.h"
 
-#include <string.h>
-
+/**
+ * @brief Maximum size of password.
+ * */
 #define MAX_SIZE_PASSWORD		4
 
 /**
@@ -29,18 +31,27 @@
  * */
 typedef enum
 {
-	SYSTEM_IDLE = APP_RESET_VALUE,	  /**< Initial state for FSM when any interaction is not happening. */
-	SYSTEM_VALID_CONFIG,					    /**< When a key is pressed, the system valid a existing password. */
-	SYSTEM_SET_PASSWORD,					    /**< Setting a new password for the system. */
-	SYSTEM_ENTER_PASSWORD,					  /**< Entering the password for validation. */
-	SYSTEM_SAVE_PASSWORD,             /**< Saving the new password for the system. */
-	SYSTEM_ACCESS,                    /**< Granting access to the secured area. */
+	SYSTEM_IDLE = APP_RESET_VALUE,	  	/**< Initial state for FSM when any interaction is not happening. */
+	SYSTEM_VALID_CONFIG,				/**< When a key is pressed, the system valid a existing password. */
+	SYSTEM_SET_PASSWORD,				/**< Setting a new password for the system. */
+	SYSTEM_ENTER_PASSWORD,				/**< Entering the password for validation. */
+	SYSTEM_SAVE_PASSWORD,             	/**< Saving the new password for the system. */
+	SYSTEM_ACCESS,                    	/**< Granting access to the secured area. */
 }system_state_t;
 
+/**
+ * @brief System state related to Secure System FSM.
+ * */
 static system_state_t system_state = SYSTEM_IDLE;
 
+/**
+ * @brief Variable to save the key pressed on keypad.
+ * */
 static char system_key_pressed;
 
+/**
+ * @brief Offset to identify the keys position in the array.
+ * */
 static uint8_t offset_cfg_password = APP_RESET_VALUE;
 
 /**
@@ -48,14 +59,52 @@ static uint8_t offset_cfg_password = APP_RESET_VALUE;
  * */
 static delay_t delay_debounce_bt = {APP_RESET_VALUE};
 
+/**
+ * @brief Array to save the password entered by the user.
+ * */
 static char curr_password[MAX_SIZE_PASSWORD] = {0xFF, 0xFF, 0xFF, 0xFF};
 
+/**
+ * @brief Attempts to enter a valid password in the system.
+ * */
 static uint8_t fail_pwd_count = APP_RESET_VALUE;
 
+/**
+ * @brief Flag to show the idle message just a once time.
+ * */
 static uint8_t idle_msg = true;
 
+/**
+ * @brief Array to save the password entered by the user when trying to login in a system session.
+ * */
 static char login_user_password[MAX_SIZE_PASSWORD] = {0XFF};
+
+/**
+ * @brief Offset variable to save the position of password entered.
+ * */
 static uint8_t login_pwd_offset = APP_RESET_VALUE;
+
+static SYSTEM_RET system_set_password(char key_pressed);
+
+static SYSTEM_RET system_login_pwd(void);
+
+static SYSTEM_RET system_valid_cfg_msg(void);
+
+static SYSTEM_RET system_idle_msg(void);
+
+static SYSTEM_RET system_access_msg(void);
+
+static SYSTEM_RET system_reset_resources(void);
+
+static SYSTEM_RET system_save_password(void);
+
+static bool_t is_array_zero(void);
+
+static bool_t system_verify_password(char key_pressed);
+
+static void system_gpio_init(void);
+
+static SYSTEM_RET system_delay_init(void);
 
 static SYSTEM_RET system_set_password(char key_pressed)
 {
@@ -148,7 +197,8 @@ static SYSTEM_RET system_save_password(void)
 	return SYS_OK;
 }
 
-static bool_t is_array_zero(void) {
+static bool_t is_array_zero(void)
+{
     for (int i = APP_RESET_VALUE; i < MAX_SIZE_PASSWORD; i++) {
         if (curr_password[i] != 0xFF) {
             return false; // Si encuentra un número distinto de 0, se detiene y retorna falso
@@ -193,6 +243,37 @@ static bool_t system_verify_password(char key_pressed)
 		}
 	}
 	return pwd_ret;
+}
+
+static void system_gpio_init(void)
+{
+  GPIO_InitTypeDef GPIO_InitStruct = {0};
+
+  /* GPIO Ports Clock Enable */
+  __HAL_RCC_GPIOC_CLK_ENABLE();
+  __HAL_RCC_GPIOH_CLK_ENABLE();
+  __HAL_RCC_GPIOA_CLK_ENABLE();
+  __HAL_RCC_GPIOB_CLK_ENABLE();
+
+  GPIO_TypeDef *mcp_spi_port = NULL;
+  uint16_t spi_cs_pin = 0;
+  mcp_get_spi_port((void **)&mcp_spi_port);
+  mcp_get_spi_cs_pin(&spi_cs_pin);
+
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(mcp_spi_port, spi_cs_pin, GPIO_PIN_SET);
+  /*Configure GPIO pin : SPI_CS_Pin */
+  GPIO_InitStruct.Pin = spi_cs_pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(mcp_spi_port, &GPIO_InitStruct);
+}
+
+static SYSTEM_RET system_delay_init(void)
+{
+	delayInit(&delay_debounce_bt, NO_ACTION_INIT_TICK);
+	return SYS_OK;
 }
 
 SYSTEM_RET system_fsm_state_update(void)
@@ -248,37 +329,6 @@ SYSTEM_RET system_fsm_state_update(void)
 		break;
 	}
 	HAL_Delay(250);
-	return SYS_OK;
-}
-
-static void system_gpio_init(void)
-{
-  GPIO_InitTypeDef GPIO_InitStruct = {0};
-
-  /* GPIO Ports Clock Enable */
-  __HAL_RCC_GPIOC_CLK_ENABLE();
-  __HAL_RCC_GPIOH_CLK_ENABLE();
-  __HAL_RCC_GPIOA_CLK_ENABLE();
-  __HAL_RCC_GPIOB_CLK_ENABLE();
-
-  GPIO_TypeDef *mcp_spi_port = NULL;
-  uint16_t spi_cs_pin = 0;
-  mcp_get_spi_port((void **)&mcp_spi_port);
-  mcp_get_spi_cs_pin(&spi_cs_pin);
-
-  /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(mcp_spi_port, spi_cs_pin, GPIO_PIN_SET);
-  /*Configure GPIO pin : SPI_CS_Pin */
-  GPIO_InitStruct.Pin = spi_cs_pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(mcp_spi_port, &GPIO_InitStruct);
-}
-
-static SYSTEM_RET system_delay_init(void)
-{
-	delayInit(&delay_debounce_bt, NO_ACTION_INIT_TICK);
 	return SYS_OK;
 }
 
