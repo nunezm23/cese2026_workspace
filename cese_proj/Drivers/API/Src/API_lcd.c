@@ -308,11 +308,14 @@ LCD_RET lcd_init(void)
 	return init_ret;
 }
 
-void lcd_send_string(char *str) {
-    while (*str) lcd_send_data(*str++);
+LCD_RET lcd_send_string(char *str) {
+    while (*str) {
+        lcd_send_data(*str++);
+    }
+    return LCD_OK;
 }
 
-void lcd_put_cur(int row, int col) {
+LCD_RET lcd_put_cur(int row, int col) {
     // Direcciones de memoria para pantallas de 20x4
     switch (row) {
         case 0: col |= 0x80; break;
@@ -320,10 +323,12 @@ void lcd_put_cur(int row, int col) {
         case 2: col |= 0x94; break;
         case 3: col |= 0xD4; break;
     }
-    lcd_send_cmd(col);
+    lcd_send_cmd_internal(col);
+    return LCD_OK;
 }
 
-void lcd_clear(void) {
-    lcd_send_cmd(0x01);
-    HAL_Delay(1); // Limpiar toma más tiempo
+LCD_RET lcd_clear(void){
+    lcd_send_cmd_internal(0x01);
+    HAL_Delay(1);
+    return LCD_OK;
 }
