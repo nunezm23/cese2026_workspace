@@ -84,26 +84,110 @@ static char login_user_password[MAX_SIZE_PASSWORD] = {0XFF};
  * */
 static uint8_t login_pwd_offset = APP_RESET_VALUE;
 
+/**
+ * @brief Sets a character of the password during configuration.
+ * @note When password reaches MAX_SIZE_PASSWORD, transitions to SYSTEM_SAVE_PASSWORD state.
+ * 
+ * @param[in] key_pressed The character key pressed by the user.
+ * 
+ * @return SYSTEM_RET Status code.
+ * @retval SYS_OK on success.
+ * */
 static SYSTEM_RET system_set_password(char key_pressed);
 
+/**
+ * @brief Displays login prompt message on LCD display.
+ * @note Displays message indicating device is configured and prompts user to enter password.
+ * 
+ * @return SYSTEM_RET Status code (SYS_OK on success).
+ * */
 static SYSTEM_RET system_login_pwd(void);
 
+/**
+ * @brief Displays configuration validation message when no password is detected.
+ * 
+ * @note Used during first-time system setup to indicate password configuration is required.
+ * 
+ * @return SYSTEM_RET Status code.
+ * @retval SYS_OK on success.
+ * */
 static SYSTEM_RET system_valid_cfg_msg(void);
 
+/**
+ * @brief Displays idle state message on LCD display.
+ * 
+ * @note Shows system welcome message with designer information.
+ * 
+ * @return SYSTEM_RET Status code.
+ * @retval SYS_OK on success.
+ * */
 static SYSTEM_RET system_idle_msg(void);
 
+/**
+ * @brief Displays access granted message on LCD display.
+ * 
+ * @note Displayed upon successful password authentication.
+ * 
+ * @return SYSTEM_RET Status code.
+ * @retval SYS_OK on success.
+ * */
 static SYSTEM_RET system_access_msg(void);
 
+/**
+ * @brief Resets login-related resources and counters.
+ * 
+ * @note Clears login password buffer and resets login offset counter.
+ * 
+ * @return SYSTEM_RET Status code (SYS_OK on success).
+ * @retval SYS_OK on success.
+ * */
 static SYSTEM_RET system_reset_resources(void);
 
+/**
+ * @brief Saves the newly configured password to system state.
+ * 
+ * @note Displays confirmation message and transitions back to SYSTEM_IDLE state.
+ * 
+ * @return SYSTEM_RET Status code..
+ * @retval SYS_OK on success.
+ * */
 static SYSTEM_RET system_save_password(void);
 
+/**
+ * @brief Checks if the current password array is in uninitialized state (all 0xFF).
+ * 
+ * @return bool_t status of password configuration.
+ * @retval true if password is unconfigured, false if password has been set.
+ * */
 static bool_t is_array_zero(void);
 
+/**
+ * @brief Verifies user-entered password against the stored password.
+ * @note Implements 3-attempt lockout mechanism for failed authentication.
+ * 
+ * @param[in] key_pressed The character key pressed by the user.
+ * 
+ * @return bool_t Result of password verification.
+ * @retval true If password verification succeeds, false otherwise.
+ * */
 static bool_t system_verify_password(char key_pressed);
 
-static void system_gpio_init(void);
+/**
+ * @brief Initializes GPIO ports and configures SPI chip select pin.
+ * @note Enables GPIO clocks and configures MCP23S17 SPI interface.
+ * 
+ * @return SYSTEM_RET Status code.
+ * @retval SYS_OK on successful initialization, SYS_ERROR on failure.
+ * */
+static SYSTEM_RET system_gpio_init(void);
 
+/**
+ * @brief Initializes debounce delay timer for the system.
+ * @note Configures delay with NO_ACTION_INIT_TICK milliseconds timeout.
+ * 
+ * @return SYSTEM_RET Status code.
+ * @retval SYS_OK on successful initialization, SYS_ERROR on failure.
+ * */
 static SYSTEM_RET system_delay_init(void);
 
 static SYSTEM_RET system_set_password(char key_pressed)
@@ -199,12 +283,14 @@ static SYSTEM_RET system_save_password(void)
 
 static bool_t is_array_zero(void)
 {
-    for (int i = APP_RESET_VALUE; i < MAX_SIZE_PASSWORD; i++) {
-        if (curr_password[i] != 0xFF) {
-            return false; // Si encuentra un número distinto de 0, se detiene y retorna falso
+    for (uint8_t i = APP_RESET_VALUE; i < MAX_SIZE_PASSWORD; i++)
+    {
+        if (curr_password[i] != 0xFF)
+        {
+            return false; /* Password has been configured */
         }
     }
-    return true; // Si termina el bucle sin encontrar otros números, todo es cero
+    return true; /* All bytes uninitialized (0xFF) */
 }
 
 static bool_t system_verify_password(char key_pressed)
@@ -216,23 +302,31 @@ static bool_t system_verify_password(char key_pressed)
 		lcd_put_cur(2, login_pwd_offset);
 		lcd_send_data(key_pressed);
 		login_pwd_offset++;
-	}else if(login_pwd_offset == MAX_SIZE_PASSWORD)
+	}
+	else if(login_pwd_offset == MAX_SIZE_PASSWORD)
 	{
-		if(SYS_OK == strncmp(login_user_password, curr_password, MAX_SIZE_PASSWORD))
+		/* Password entry complete, verify against stored password */
+		int cmp_result = strncmp((const char *)login_user_password, (const char *)curr_password, MAX_SIZE_PASSWORD);
+		if(0 == cmp_result)
 		{
+			/* Password matches - grant access */
 			system_state = SYSTEM_ACCESS;
-		}else
+			pwd_ret = true;
+		}
+		else
 		{
-			if(2 == fail_pwd_count)
+			/* Password mismatch - check attempt count */
+			if(fail_pwd_count >= 2U)
 			{
+				/* Maximum attempts exceeded - lock system */
 				system_state = SYSTEM_IDLE;
 				idle_msg = true;
 				return pwd_ret;
 			}
 			fail_pwd_count++;
 			lcd_put_cur(3, 0);
-			uint8_t attempt_left = 3 - fail_pwd_count;
-			char caracter_lcd = attempt_left + '0';
+			uint8_t attempt_left = (3U - fail_pwd_count);
+			char caracter_lcd = (char)(attempt_left + '0');
 			lcd_send_data(caracter_lcd);
 			lcd_put_cur(3, 2);
 			lcd_send_string("Attempt left");
@@ -245,7 +339,7 @@ static bool_t system_verify_password(char key_pressed)
 	return pwd_ret;
 }
 
-static void system_gpio_init(void)
+static SYSTEM_RET system_gpio_init(void)
 {
   GPIO_InitTypeDef GPIO_InitStruct = {0};
 
@@ -257,35 +351,64 @@ static void system_gpio_init(void)
 
   GPIO_TypeDef *mcp_spi_port = NULL;
   uint16_t spi_cs_pin = 0;
+  
+  /* Retrieve SPI port and chip select pin from MCP module */
   mcp_get_spi_port((void **)&mcp_spi_port);
   mcp_get_spi_cs_pin(&spi_cs_pin);
 
-  /*Configure GPIO pin Output Level */
+  /* Validate retrieved port pointer */
+  if (NULL == mcp_spi_port)
+  {
+    return SYS_ERROR; /* Invalid GPIO port retrieved */
+  }
+
+  /* Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(mcp_spi_port, spi_cs_pin, GPIO_PIN_SET);
-  /*Configure GPIO pin : SPI_CS_Pin */
+  
+  /* Configure GPIO pin : SPI_CS_Pin */
   GPIO_InitStruct.Pin = spi_cs_pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(mcp_spi_port, &GPIO_InitStruct);
+  
+  return SYS_OK;
 }
 
 static SYSTEM_RET system_delay_init(void)
 {
-	delayInit(&delay_debounce_bt, NO_ACTION_INIT_TICK);
-	return SYS_OK;
+	SYSTEM_RET ret = SYS_OK;
+	
+	/* Validate delay structure before initialization */
+	if (NULL == &delay_debounce_bt)
+	{
+		return SYS_ERROR;
+	}
+	
+	ret = delayInit(&delay_debounce_bt, NO_ACTION_INIT_TICK);
+	return ret;
 }
 
 SYSTEM_RET system_fsm_state_update(void)
 {
+	SYSTEM_RET ret = SYS_OK;
+	
 	system_key_pressed = mcp_scan_keypad();
 	switch (system_state)
 	{
 	case SYSTEM_IDLE:
 		if(idle_msg)
 		{
-			system_reset_resources();
-			system_idle_msg();
+			ret = system_reset_resources();
+			if (SYS_OK != ret)
+			{
+				return ret; /* Error resetting resources */
+			}
+			ret = system_idle_msg();
+			if (SYS_OK != ret)
+			{
+				return ret; /* Error displaying idle message */
+			}
 			idle_msg = false;
 		}
 		if(APP_RESET_VALUE != system_key_pressed)
@@ -296,18 +419,31 @@ SYSTEM_RET system_fsm_state_update(void)
 	case SYSTEM_VALID_CONFIG:
 		if(true == is_array_zero())
 		{
-			system_valid_cfg_msg();
+			ret = system_valid_cfg_msg();
+			if (SYS_OK != ret)
+			{
+				return ret; /* Error displaying config message */
+			}
 			system_state = SYSTEM_SET_PASSWORD;
-		}else
+		}
+		else
 		{
-			system_login_pwd();
+			ret = system_login_pwd();
+			if (SYS_OK != ret)
+			{
+				return ret; /* Error displaying login prompt */
+			}
 			system_state = SYSTEM_ENTER_PASSWORD;
 		}
 		break;
 	case SYSTEM_SET_PASSWORD:
 		if(APP_RESET_VALUE != system_key_pressed)
 		{
-			system_set_password(system_key_pressed);
+			ret = system_set_password(system_key_pressed);
+			if (SYS_OK != ret)
+			{
+				return ret; /* Error setting password */
+			}
 		}
 		break;
 	case SYSTEM_ENTER_PASSWORD:
@@ -317,26 +453,63 @@ SYSTEM_RET system_fsm_state_update(void)
 		}
 		break;
 	case SYSTEM_SAVE_PASSWORD:
-		system_save_password();
+		ret = system_save_password();
+		if (SYS_OK != ret)
+		{
+			return ret; /* Error saving password */
+		}
 		idle_msg = true;
 		break;
 	case SYSTEM_ACCESS:
-		system_access_msg();
+		ret = system_access_msg();
+		if (SYS_OK != ret)
+		{
+			return ret; /* Error displaying access message */
+		}
 		system_state = SYSTEM_IDLE;
 		idle_msg = true;
 		break;
 	default:
-		break;
+		return SYS_ERROR; /* Invalid state detected */
 	}
 	HAL_Delay(250);
-	return SYS_OK;
+	return ret;
 }
 
 SYSTEM_RET system_init(void)
 {
-	system_gpio_init();
-	lcd_init();
-	mcp_init();
-	system_delay_init();
+	SYSTEM_RET ret = SYS_OK;
+	
+	/* Initialize GPIO ports and SPI interface */
+	ret = system_gpio_init();
+	if (SYS_OK != ret)
+	{
+		return ret; /* GPIO initialization failed */
+	}
+	
+	/* Initialize LCD display */
+	ret = lcd_init();
+	if (SYS_OK != ret)
+	{
+		return ret; /* LCD initialization failed */
+	}
+	
+	/* Initialize MCP23S17 keypad controller */
+	ret = mcp_init();
+	if (SYS_OK != ret)
+	{
+		return ret; /* MCP initialization failed */
+	}
+	
+	/* Initialize system delay timer */
+	ret = system_delay_init();
+	if (SYS_OK != ret)
+	{
+		return ret; /* Delay initialization failed */
+	}
+	
+	/* Reset attempt counter and login resources on startup */
+	fail_pwd_count = APP_RESET_VALUE;
+
 	return SYS_OK;
 }
