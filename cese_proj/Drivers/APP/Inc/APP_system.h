@@ -15,21 +15,39 @@
 
 #define SYSTEM_RET		int8_t
 
+/**
+ * @brief Reset value for the application.
+ */
 #define APP_RESET_VALUE		API_RESET_VALUE
 
+/**
+ * @brief Error types for system functions.
+ */
 typedef enum
 {
-	SYS_OK = 0,
-	SYS_ERR_INIT,
-	SYS_ERR_NULL_POINTER,
-	SYS_ERR_INVALID_PARAMS,
-	SYS_ERR_NO_KEYS_PRESSED,
-	SYS_ERR_UNKNOWN,
+	SYS_OK = 0,               /**< System operation successful */
+	SYS_ERR_INIT,             /**< Initialization error */
+	SYS_ERR_NULL_POINTER,     /**< Null pointer error */
+	SYS_ERR_INVALID_PARAMS,   /**< Invalid parameters error */
+	SYS_ERR_NO_KEYS_PRESSED,  /**< No keys pressed error */
+	SYS_ERR_UNKNOWN,          /**< Unknown error */
 }sys_err_t;
 
+/**
+ * @brief Initializes the system peripherals and resources for the security system application.
+ * @note Initializes GPIO ports, SPI interface, LCD display, MCP23S17 keypad controller, and system delay timer.
+ * 
+ * @return SYSTEM_RET Status code indicating success or failure of initialization.
+ * @retval SYS_OK on successful initialization, SYS_ERROR on failure.
+ */
 SYSTEM_RET system_init(void);
 
+/**
+ * @brief Updates the state of the system finite state machine.
+ * 
+ * @return SYSTEM_RET Status code.
+ * @retval SYS_OK on success.
+ */
 SYSTEM_RET system_fsm_state_update(void);
-
 
 #endif /* __APP_system_H */
