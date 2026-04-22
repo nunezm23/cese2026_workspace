@@ -141,15 +141,6 @@ static MCP_RET mcp_get_spi_port_internal(void **spi_port);
  * */
 static MCP_RET mcp_get_spi_cs_pin_internal(uint16_t *spi_pin);
 
-/**
- * @brief Writes a byte to a specified MCP23S17 register via SPI.
- * @param[in] reg Register address to write to.
- * @param[in] data Byte value to write to the register.
- * @return MCP_RET Status code indicating success or failure.
- * @retval MCP_OK on successful write.
- * @retval MCP_ERR_SPI on SPI transmission error.
- * @note Performs manual chip select management via GPIO.
- * */
 static MCP_RET MCP_WriteReg(uint8_t reg, uint8_t data)
 {
     uint8_t tx_data[3] = {OPCODE_WRITE, reg, data};
@@ -173,16 +164,6 @@ static MCP_RET MCP_WriteReg(uint8_t reg, uint8_t data)
     return MCP_OK;
 }
 
-/**
- * @brief Reads a byte from a specified MCP23S17 register via SPI.
- * @param[in] reg Register address to read from.
- * @param[out] data Pointer to store the read byte value.
- * @return MCP_RET Status code indicating success or failure.
- * @retval MCP_OK on successful read.
- * @retval MCP_ERR_SPI on SPI transmission/receive error.
- * @retval MCP_ERR_NULL if data pointer is NULL.
- * @note Performs manual chip select management via GPIO.
- * */
 static MCP_RET MCP_ReadReg(uint8_t reg, uint8_t *data)
 {
     uint8_t tx_data[2] = {OPCODE_READ, reg};
@@ -222,11 +203,6 @@ static MCP_RET MCP_ReadReg(uint8_t reg, uint8_t *data)
     return MCP_OK;
 }
 
-/**
- * @brief Scans the keypad matrix and returns the pressed key.
- * @return char Character representing the pressed key, or 0 if no key is pressed.
- * @note Performs row-by-row scanning with debounce delay.
- * */
 static char mcp_scan_keypad(void)
 {
     for (uint8_t row = 0; row < 4U; row++)

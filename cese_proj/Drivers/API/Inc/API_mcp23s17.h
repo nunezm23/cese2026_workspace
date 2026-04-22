@@ -13,25 +13,59 @@
 
 #include "API_common.h"
 
-
+/**
+ * @brief Ret type for MCP23S17 API functions.
+ */
 #define MCP_RET		int8_t
 
+/**
+ * @brief Error types for MCP23S17 API functions.
+ * @note Used for consistent error handling across MCP23S17 operations.
+ */
 typedef enum
 {
-	MCP_OK = 0,
-	MCP_ERR_INIT,
-	MCP_ERR_NULL_POINTER,
-	MCP_ERR_INVALID_PARAMS,
-	MCP_ERR_UNKNOWN,
+	MCP_OK = 0,               /**< Successful operation */
+	MCP_ERR_INIT,           /**< Initialization error */
+	MCP_ERR_NULL_POINTER,   /**< Null pointer error */
+	MCP_ERR_INVALID_PARAMS, /**< Invalid parameters error */
+	MCP_ERR_UNKNOWN,        /**< Unknown error */
 }mcp_err_t;
 
-void MCP_WriteReg(uint8_t reg, uint8_t data);
-uint8_t MCP_ReadReg(uint8_t reg);
+/**
+ * @brief Scans the keypad matrix and returns the pressed key.
+ * @note Performs row-by-row scanning with debounce delay.
+ * 
+ * @return char Character representing the pressed key, or 0 if no key is pressed.
+ */
 char mcp_scan_keypad(void);
 
+/**
+ * @brief Retrieves the SPI chip select GPIO port.
+ * @param[out] spi_port Pointer to store the GPIO port address.
+ * @return MCP_RET Status code.
+ * @retval MCP_OK on success.
+ * @retval MCP_ERR_NULL if spi_port is NULL.
+ * @note Used by peripheral initialization routines.
+ */
 MCP_RET mcp_get_spi_port(void **spi_port);
-MCP_RET mcp_get_spi_cs_pin(uint16_t *spi_pin);
-MCP_RET mcp_init(void);
 
+/**
+ * @brief Retrieves the SPI chip select GPIO pin number.
+ * @note Used by peripheral initialization routines.
+ * 
+ * @param[out] spi_pin Pointer to store the GPIO pin value.
+ * 
+ * @return MCP_RET Status code.
+ * @retval MCP_OK on success.
+ */
+MCP_RET mcp_get_spi_cs_pin(uint16_t *spi_pin);
+
+/**
+ * @brief Initializes the MCP23S17 I/O expander.
+ * 
+ * @return MCP_RET Status code.
+ * @retval MCP_OK on successful initialization.
+ */
+MCP_RET mcp_init(void);
 
 #endif /* __API_mcp23s17_H */
