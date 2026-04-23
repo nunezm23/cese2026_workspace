@@ -11,8 +11,15 @@
 #include "port.h"
 #include "stm32f4xx_hal.h"
 
-
+/**
+ * @brief SPI Chip Select (CS) pin.
+ * 
+ */
 #define SPI_CS_Pin 			GPIO_PIN_6
+
+/**
+ * @brief GPIO port for SPI Chip Select (CS) pin.
+ */
 #define SPI_CS_GPIO_Port 	GPIOB
 
 /**
@@ -40,22 +47,20 @@ uint8_t port_i2c_init(void)
     hi2c1.Init.GeneralCallMode = I2C_GENERALCALL_DISABLE;
     hi2c1.Init.NoStretchMode = I2C_NOSTRETCH_DISABLE;
   
-  /* Initialize I2C peripheral */
-  hal_ret = HAL_I2C_Init(&hi2c1);
-  if (HAL_OK != hal_ret)
-  {
-    return 0U; /* I2C initialization failed */
-  }
+    hal_ret = HAL_I2C_Init(&hi2c1);
+    if (HAL_OK != hal_ret)
+    {
+        return 0U;
+    }
 
-    return 0U; /* Success */
+    return 0U;
 }
-
 
 uint8_t port_i2c_master_transmit(uint16_t DevAddress, uint8_t *pData, uint16_t Size, uint32_t Timeout)
 {
     if(NULL == pData || PORT_RESET_VALUE == Size)
     {
-        return 1U; /* Invalid parameters */
+        return 1U;
     }
 
     HAL_StatusTypeDef hal_ret;
@@ -63,28 +68,28 @@ uint8_t port_i2c_master_transmit(uint16_t DevAddress, uint8_t *pData, uint16_t S
     hal_ret = HAL_I2C_Master_Transmit(&hi2c1, DevAddress, pData, Size, Timeout);
     if (HAL_OK != hal_ret)
     {
-        return 1U; /* Transmission error */
+        return 1U;
     }
     
-    return hal_ret; /* Success */
+    return hal_ret;
 }
 
 uint8_t port_delay_ms(uint32_t ms)
 {
     HAL_Delay(ms);
-    return 0U; /* Success */
+    return 0U;
 }
 
 uint32_t port_get_tick(void)
 {
-    return HAL_GetTick(); /* Return current tick value */
+    return HAL_GetTick();
 }
 
 uint8_t port_spi_master_transmit(uint8_t *pData, uint16_t Size, uint32_t Timeout)
 {
     if(NULL == pData || PORT_RESET_VALUE == Size)
     {
-        return 1U; /* Invalid parameters */
+        return 1U;
     }
 
     HAL_StatusTypeDef hal_ret;
@@ -92,17 +97,17 @@ uint8_t port_spi_master_transmit(uint8_t *pData, uint16_t Size, uint32_t Timeout
     hal_ret = HAL_SPI_Transmit(&hspi1, pData, Size, Timeout);
     if (HAL_OK != hal_ret)
     {
-        return 1U; /* Transmission error */
+        return 1U;
     }
     
-    return hal_ret; /* Success */
+    return hal_ret;
 }
 
 uint8_t port_spi_master_receive(uint8_t *pData, uint16_t Size, uint32_t Timeout)
 {
     if(NULL == pData || PORT_RESET_VALUE == Size)
     {
-        return 1U; /* Invalid parameters */
+        return 1U;
     }
 
     HAL_StatusTypeDef hal_ret;
@@ -110,10 +115,10 @@ uint8_t port_spi_master_receive(uint8_t *pData, uint16_t Size, uint32_t Timeout)
     hal_ret = HAL_SPI_Receive(&hspi1, pData, Size, Timeout);
     if (HAL_OK != hal_ret)
     {
-        return 1U; /* Reception error */
+        return 1U;
     }
     
-    return hal_ret; /* Success */
+    return hal_ret;
 }
 
 uint8_t port_spi_init(void)
@@ -133,20 +138,19 @@ uint8_t port_spi_init(void)
     hspi1.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
     hspi1.Init.CRCPolynomial = 10;
     
-    /* Initialize SPI peripheral */
     hal_ret = HAL_SPI_Init(&hspi1);
     if (HAL_OK != hal_ret)
     {
-        return 1U; /* SPI initialization failed */
+        return 1U;
     }
     
-    return 0U; /* Success */
+    return 0U;
 }
 
 uint8_t port_gpio_set_cs_pin(void)
 {
     HAL_GPIO_WritePin(SPI_CS_GPIO_Port, SPI_CS_Pin, GPIO_PIN_SET);
-    return 0U; /* Success */
+    return 0U;
 }
 
 uint8_t port_gpio_reset_cs_pin(void)
@@ -165,15 +169,13 @@ uint8_t port_gpio_init(void)
     __HAL_RCC_GPIOA_CLK_ENABLE();
     __HAL_RCC_GPIOB_CLK_ENABLE();
 
-    /* Configure GPIO pin Output Level */
     HAL_GPIO_WritePin(SPI_CS_GPIO_Port, SPI_CS_Pin, GPIO_PIN_SET);
     
-    /* Configure GPIO pin : SPI_CS_Pin */
     GPIO_InitStruct.Pin = SPI_CS_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
     HAL_GPIO_Init(SPI_CS_GPIO_Port, &GPIO_InitStruct);
     
-    return 0U; /* Success */
+    return 0U;
 }
