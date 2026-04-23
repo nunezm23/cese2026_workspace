@@ -26,5 +26,6 @@ Core/Src \
 Core/Startup \
 Drivers/API/Src \
 Drivers/APP/Src \
+Drivers/ARCH/Src \
 Drivers/STM32F4xx_HAL_Driver/Src \
 

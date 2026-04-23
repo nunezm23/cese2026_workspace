@@ -16,7 +16,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
-#include "stm32f4xx_hal.h"
+
 
 /**
  * @brief Reset zero value for validations or init parameters.
@@ -32,7 +32,6 @@ typedef bool bool_t;
  * @brief Tick type of uint32_t
  * */
 typedef uint32_t tick_t;
-
 
 
 #endif /* __API_common_H */

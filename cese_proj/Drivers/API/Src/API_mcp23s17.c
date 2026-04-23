@@ -9,6 +9,7 @@
 */
 
 #include "API_mcp23s17.h"
+#include "port.h"
 
 /**
  * @brief MCP23S17 I2C hardware address (pins tied to GND).
@@ -44,23 +45,6 @@
  * @note Used to read/write GPIO pin states on Port A.
  * */
 #define MCP_GPIOA   0x12
-
-/**
- * @brief SPI Chip Select pin number.
- * */
-#define SPI_CS_Pin GPIO_PIN_6
-
-/**
- * @brief SPI Chip Select GPIO port.
- * */
-#define SPI_CS_GPIO_Port GPIOB
-
-
-/**
- * @brief SPI peripheral handler instance.
- * @note Configured for communication with MCP23S17 I/O expander.
- * */
-static SPI_HandleTypeDef hspi1;
 
 /**
  * @brief Keypad matrix mapping for 4x4 key layout.
@@ -105,31 +89,22 @@ static MCP_RET MCP_ReadReg(uint8_t reg, uint8_t *data);
  * */
 static MCP_RET mcp_config_params(void);
 
-/**
- * @brief Initializes the SPI peripheral for MCP23S17 communication.
- * @return MCP_RET Status code.
- * @retval MCP_OK on successful initialization.
- * @retval MCP_ERR_INIT on initialization failure.
- * @note Configures SPI1 in master mode with appropriate timing parameters.
- * */
-static MCP_RET mcp_spi_init(void);
-
 static MCP_RET MCP_WriteReg(uint8_t reg, uint8_t data)
 {
     uint8_t tx_data[3] = {OPCODE_WRITE, reg, data};
-    HAL_StatusTypeDef hal_ret;
+    MCP_RET write_ret;
     
     /* Pull chip select low to enable device */
-    HAL_GPIO_WritePin(SPI_CS_GPIO_Port, SPI_CS_Pin, GPIO_PIN_RESET);
+    port_gpio_reset_cs_pin();
     
     /* Transmit write command, register address, and data */
-    hal_ret = HAL_SPI_Transmit(&hspi1, tx_data, 3, 100);
+    write_ret = port_spi_master_transmit(tx_data, 3, 100);
     
     /* Pull chip select high to disable device */
-    HAL_GPIO_WritePin(SPI_CS_GPIO_Port, SPI_CS_Pin, GPIO_PIN_SET);
+    port_gpio_set_cs_pin();
     
     /* Validate SPI transmission */
-    if (HAL_OK != hal_ret)
+    if (MCP_OK != write_ret)
     {
         return MCP_ERR_SPI_COMM;
     }
@@ -141,7 +116,7 @@ static MCP_RET MCP_ReadReg(uint8_t reg, uint8_t *data)
 {
     uint8_t tx_data[2] = {OPCODE_READ, reg};
     uint8_t rx_data = 0;
-    HAL_StatusTypeDef hal_ret;
+    MCP_RET read_ret;
     
     /* Validate input parameter */
     if (NULL == data)
@@ -150,24 +125,24 @@ static MCP_RET MCP_ReadReg(uint8_t reg, uint8_t *data)
     }
     
     /* Pull chip select low to enable device */
-    HAL_GPIO_WritePin(SPI_CS_GPIO_Port, SPI_CS_Pin, GPIO_PIN_RESET);
+    port_gpio_reset_cs_pin();
     
     /* Transmit read command and register address */
-    hal_ret = HAL_SPI_Transmit(&hspi1, tx_data, 2, 100);
-    if (HAL_OK != hal_ret)
+    read_ret = port_spi_master_transmit(tx_data, 2, 100);
+    if (MCP_OK != read_ret)
     {
-        HAL_GPIO_WritePin(SPI_CS_GPIO_Port, SPI_CS_Pin, GPIO_PIN_SET);
+        port_gpio_set_cs_pin();
         return MCP_ERR_SPI_COMM;
     }
     
     /* Receive the register data */
-    hal_ret = HAL_SPI_Receive(&hspi1, &rx_data, 1, 100);
+    read_ret = port_spi_master_receive(&rx_data, 1, 100);
     
     /* Pull chip select high to disable device */
-    HAL_GPIO_WritePin(SPI_CS_GPIO_Port, SPI_CS_Pin, GPIO_PIN_SET);
+    port_gpio_set_cs_pin();
     
     /* Validate SPI reception */
-    if (HAL_OK != hal_ret)
+    if (MCP_OK != read_ret)
     {
         return MCP_ERR_SPI_COMM;
     }
@@ -190,7 +165,7 @@ char mcp_scan_keypad(void)
         }
 
         /* Give a tiny delay for signal to settle */
-        HAL_Delay(1U);
+        port_delay_ms(1U);
 
         /* Read the columns (GPA4 to GPA7) */
         uint8_t portStatus = 0;
@@ -243,61 +218,10 @@ static MCP_RET mcp_config_params(void)
 	return MCP_OK;
 }
 
-static MCP_RET mcp_spi_init(void)
-{
-	HAL_StatusTypeDef hal_ret;
-	
-	hspi1.Instance = SPI1;
-	hspi1.Init.Mode = SPI_MODE_MASTER;
-	hspi1.Init.Direction = SPI_DIRECTION_2LINES;
-	hspi1.Init.DataSize = SPI_DATASIZE_8BIT;
-	hspi1.Init.CLKPolarity = SPI_POLARITY_LOW;
-	hspi1.Init.CLKPhase = SPI_PHASE_1EDGE;
-	hspi1.Init.NSS = SPI_NSS_SOFT;
-	hspi1.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_16;
-	hspi1.Init.FirstBit = SPI_FIRSTBIT_MSB;
-	hspi1.Init.TIMode = SPI_TIMODE_DISABLE;
-	hspi1.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
-	hspi1.Init.CRCPolynomial = 10;
-	
-	/* Initialize SPI peripheral */
-	hal_ret = HAL_SPI_Init(&hspi1);
-	if (HAL_OK != hal_ret)
-	{
-		return MCP_ERR_INIT; /* SPI initialization failed */
-	}
-	
-	return MCP_OK;
-}
-
-MCP_RET mcp_get_spi_port(void **spi_port)
-{
-	/* Validate input parameter */
-	if (NULL == spi_port)
-	{
-		return MCP_ERR_NULL_POINTER; /* Invalid pointer provided */
-	}
-	
-	*spi_port = (void *)SPI_CS_GPIO_Port;
-	return MCP_OK;
-}
-
-MCP_RET mcp_get_spi_cs_pin(uint16_t *spi_pin)
-{
-	/* Validate input parameter */
-	if (NULL == spi_pin)
-	{
-		return MCP_ERR_NULL_POINTER; /* Invalid pointer provided */
-	}
-	
-	*spi_pin = SPI_CS_Pin;
-	return MCP_OK;
-}
-
 MCP_RET mcp_init(void)
 {
 	MCP_RET init_ret = MCP_ERR_UNKNOWN;
-	init_ret = mcp_spi_init();
+	init_ret = port_spi_init();
 	if(MCP_OK != init_ret)
 	{
 		return init_ret;
