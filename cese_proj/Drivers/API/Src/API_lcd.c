@@ -265,32 +265,89 @@ static LCD_RET lcd_config(void)
 LCD_RET lcd_init(void)
 {
 	LCD_RET init_ret = LCD_OK;
+	
+	/* Initialize I2C communication interface */
 	port_i2c_init();
-	lcd_config();
-	return init_ret;
+	
+	/* Configure LCD controller and perform initialization sequence */
+	init_ret = lcd_config();
+	if (LCD_OK != init_ret)
+	{
+		return LCD_ERR_INIT; /* LCD configuration failed */
+	}
+	
+	return LCD_OK;
 }
 
-LCD_RET lcd_send_string(char *str) {
-    while (*str) {
-        lcd_send_data(*str++);
+LCD_RET lcd_send_string(char *str)
+{
+    LCD_RET str_ret = LCD_OK;
+    
+    /* Validate pointer parameter */
+    if (NULL == str)
+    {
+        return LCD_ERR_NULL_POINTER; /* Null pointer provided */
     }
+    
+    /* Send each character in string until null terminator */
+    while ('\0' != *str)
+    {
+        str_ret = lcd_send_data(*str);
+        if (LCD_OK != str_ret)
+        {
+            return str_ret; /* Error sending character */
+        }
+        str++;
+    }
+    
     return LCD_OK;
 }
 
-LCD_RET lcd_put_cur(int row, int col) {
-    // Direcciones de memoria para pantallas de 20x4
-    switch (row) {
-        case 0: col |= 0x80; break;
-        case 1: col |= 0xC0; break;
-        case 2: col |= 0x94; break;
-        case 3: col |= 0xD4; break;
+LCD_RET lcd_put_cur(int row, int col)
+{
+    uint8_t row_addr = 0U;
+    LCD_RET cur_ret = LCD_OK;
+    
+    /* Validate row parameter (0 to LCD_HEIGHT-1) */
+    if ((row < 0) || (row >= LCD_HEIGHT))
+    {
+        return LCD_ERR_INVALID_PARAMS; /* Invalid row number */
     }
-    lcd_send_cmd_internal(col);
+    
+    /* Validate column parameter (0 to LCD_WIDTH-1) */
+    if ((col < 0) || (col >= LCD_WIDTH))
+    {
+        return LCD_ERR_INVALID_PARAMS; /* Invalid column number */
+    }
+    
+    switch (row)
+    {
+        case 0: row_addr = LCD_ROW_0_ADDR; break;
+        case 1: row_addr = LCD_ROW_1_ADDR; break;
+        case 2: row_addr = LCD_ROW_2_ADDR; break;
+        case 3: row_addr = LCD_ROW_3_ADDR; break;
+    }
+    
+    cur_ret = lcd_send_cmd_internal(row_addr | (uint8_t)col);
+    if (LCD_OK != cur_ret)
+    {
+        return cur_ret;
+    }
+    
     return LCD_OK;
 }
 
-LCD_RET lcd_clear(void){
-    lcd_send_cmd_internal(0x01);
-    port_delay_ms(1);
+LCD_RET lcd_clear(void)
+{
+    LCD_RET clear_ret = LCD_OK;
+    
+    clear_ret = lcd_send_cmd_internal(LCD_CMD_CLEAR_DISPLAY);
+    if (LCD_OK != clear_ret)
+    {
+        return clear_ret; /* Error sending clear command */
+    }
+    
+    port_delay_ms(LCD_CLEAR_DELAY_2MS);
+    
     return LCD_OK;
 }
