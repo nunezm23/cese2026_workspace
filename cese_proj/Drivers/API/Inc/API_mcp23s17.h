@@ -41,27 +41,6 @@ typedef enum
 char mcp_scan_keypad(void);
 
 /**
- * @brief Retrieves the SPI chip select GPIO port.
- * @param[out] spi_port Pointer to store the GPIO port address.
- * @return MCP_RET Status code.
- * @retval MCP_OK on success.
- * @retval MCP_ERR_NULL if spi_port is NULL.
- * @note Used by peripheral initialization routines.
- */
-MCP_RET mcp_get_spi_port(void **spi_port);
-
-/**
- * @brief Retrieves the SPI chip select GPIO pin number.
- * @note Used by peripheral initialization routines.
- * 
- * @param[out] spi_pin Pointer to store the GPIO pin value.
- * 
- * @return MCP_RET Status code.
- * @retval MCP_OK on success.
- */
-MCP_RET mcp_get_spi_cs_pin(uint16_t *spi_pin);
-
-/**
  * @brief Initializes the MCP23S17 I/O expander.
  * 
  * @return MCP_RET Status code.

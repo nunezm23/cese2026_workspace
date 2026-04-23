@@ -13,6 +13,7 @@
  * @brief Including header file for API implementation
  * */
 #include "API_delay.h"
+#include "port.h"
 
 /**
  * @brief Invalid tick parameter to set in delayWrite function when the duration is 0.
@@ -46,12 +47,12 @@ bool_t delayRead( delay_t * delay )
 	}
 	if(false == delay->running)
 	{
-		delay->startTime = HAL_GetTick();
+		delay->startTime = port_get_tick();
 		delay->running = true;
 		return bool_ret;
 	}else if(true == delay->running)
 	{
-		uint32_t current_time = HAL_GetTick();;
+		uint32_t current_time = port_get_tick();;
 		uint32_t start_time = delay->startTime;
 		if( (current_time - start_time) >= delay->duration)
 		{

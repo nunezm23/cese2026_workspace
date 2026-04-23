@@ -9,6 +9,7 @@
 */
 
 #include "API_lcd.h"
+#include "port.h"
 
 /**
  * @brief I2C slave address for LCD display with backlight controller (PCF8574).
@@ -137,12 +138,6 @@
 #define LCD_ROW_3_ADDR 0xD4U
 
 /**
- * @brief I2C peripheral handler instance.
- * @note Configured for communication with LCD display via PCF8574 I2C expander.
- * */
-static I2C_HandleTypeDef hi2c1;
-
-/**
  * @brief Sends an HD44780 command to the LCD display via I2C.
  * @param[in] cmd Command byte to send to the display.
  * @return LCD_RET Status code.
@@ -151,15 +146,6 @@ static I2C_HandleTypeDef hi2c1;
  * @note Command is sent in 4-bit mode with proper enable timing.
  * */
 static LCD_RET lcd_send_cmd_internal(uint8_t cmd);
-
-/**
- * @brief Initializes the I2C peripheral for LCD communication.
- * @return LCD_RET Status code.
- * @retval LCD_OK on successful initialization.
- * @retval LCD_ERR_INIT on initialization failure.
- * @note Configures I2C1 with 100kHz clock speed.
- * */
-static LCD_RET lcd_i2c_init(void);
 
 /**
  * @brief Configures LCD display parameters and initializes HD44780 controller.
@@ -182,7 +168,7 @@ static LCD_RET lcd_send_cmd_internal(uint8_t cmd)
 {
     uint8_t data_u, data_l;
     uint8_t data_t[4];
-    HAL_StatusTypeDef hal_ret;
+    LCD_RET cmd_ret;
 
     /* Separate command into high nibble (D7-D4) and low nibble (D3-D0) */
     data_u = (cmd & LCD_DATA_BITS_MASK);
@@ -195,8 +181,8 @@ static LCD_RET lcd_send_cmd_internal(uint8_t cmd)
     data_t[3] = data_l | LCD_CONTROL_EN_LOW;   /* Enable = 0 */
 
     /* Transmit 4 bytes via I2C */
-    hal_ret = HAL_I2C_Master_Transmit(&hi2c1, SLAVE_ADDRESS_LCD, (uint8_t *)data_t, 4U, I2C_TIMEOUT_MS);
-    if (HAL_OK != hal_ret)
+    cmd_ret = port_i2c_master_transmit(SLAVE_ADDRESS_LCD, (uint8_t *)data_t, 4U, I2C_TIMEOUT_MS);
+    if (LCD_OK != cmd_ret)
     {
         return LCD_ERR_I2C; /* I2C transmission error */
     }
@@ -209,7 +195,7 @@ LCD_RET lcd_send_data(uint8_t data)
 {
     uint8_t data_u, data_l;
     uint8_t data_t[4];
-    HAL_StatusTypeDef hal_ret;
+    LCD_RET data_ret;
 
     /* Separate data into high nibble (D7-D4) and low nibble (D3-D0) */
     data_u = (data & LCD_DATA_BITS_MASK);
@@ -222,37 +208,13 @@ LCD_RET lcd_send_data(uint8_t data)
     data_t[3] = data_l | LCD_CONTROL_DATA_EN_LOW;   /* Enable = 0, RS = 1 */
 
     /* Transmit 4 bytes via I2C */
-    hal_ret = HAL_I2C_Master_Transmit(&hi2c1, SLAVE_ADDRESS_LCD, (uint8_t *)data_t, 4U, I2C_TIMEOUT_MS);
-    if (HAL_OK != hal_ret)
+    data_ret = port_i2c_master_transmit(SLAVE_ADDRESS_LCD, (uint8_t *)data_t, 4U, I2C_TIMEOUT_MS);
+    if (LCD_OK != data_ret)
     {
         return LCD_ERR_I2C; /* I2C transmission error */
     }
     
     return LCD_OK;
-}
-
-static LCD_RET lcd_i2c_init(void)
-{
-  HAL_StatusTypeDef hal_ret;
-  
-  hi2c1.Instance = I2C1;
-  hi2c1.Init.ClockSpeed = 100000;
-  hi2c1.Init.DutyCycle = I2C_DUTYCYCLE_2;
-  hi2c1.Init.OwnAddress1 = 0;
-  hi2c1.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
-  hi2c1.Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
-  hi2c1.Init.OwnAddress2 = 0;
-  hi2c1.Init.GeneralCallMode = I2C_GENERALCALL_DISABLE;
-  hi2c1.Init.NoStretchMode = I2C_NOSTRETCH_DISABLE;
-  
-  /* Initialize I2C peripheral */
-  hal_ret = HAL_I2C_Init(&hi2c1);
-  if (HAL_OK != hal_ret)
-  {
-    return LCD_ERR_INIT; /* I2C initialization failed */
-  }
-
-  return LCD_OK;
 }
 
 static LCD_RET lcd_config(void)
@@ -262,39 +224,39 @@ static LCD_RET lcd_config(void)
     /* HD44780 power-up sequence for 4-bit mode initialization */
     /* These delays and commands are critical for proper initialization */
     
-    HAL_Delay(LCD_INIT_DELAY_50MS);
+    port_delay_ms(LCD_INIT_DELAY_50MS);
     config_ret = lcd_send_cmd_internal(LCD_CMD_INIT_8BIT_1);
     if (LCD_OK != config_ret) return config_ret;
     
-    HAL_Delay(LCD_INIT_DELAY_5MS);
+    port_delay_ms(LCD_INIT_DELAY_5MS);
     config_ret = lcd_send_cmd_internal(LCD_CMD_INIT_8BIT_1);
     if (LCD_OK != config_ret) return config_ret;
     
-    HAL_Delay(LCD_INIT_DELAY_1MS);
+    port_delay_ms(LCD_INIT_DELAY_1MS);
     config_ret = lcd_send_cmd_internal(LCD_CMD_INIT_8BIT_1);
     if (LCD_OK != config_ret) return config_ret;
     
-    HAL_Delay(LCD_INIT_DELAY_10MS);
+    port_delay_ms(LCD_INIT_DELAY_10MS);
     config_ret = lcd_send_cmd_internal(LCD_CMD_SWITCH_4BIT);  /* Switch to 4-bit mode */
     if (LCD_OK != config_ret) return config_ret;
     
-    HAL_Delay(LCD_INIT_DELAY_10MS);
+    port_delay_ms(LCD_INIT_DELAY_10MS);
     config_ret = lcd_send_cmd_internal(LCD_CMD_FUNCTION_SET);  /* Function set: 4-bit, 2 lines, 5x8 */
     if (LCD_OK != config_ret) return config_ret;
     
-    HAL_Delay(LCD_INIT_DELAY_1MS);
+    port_delay_ms(LCD_INIT_DELAY_1MS);
     config_ret = lcd_send_cmd_internal(LCD_CMD_DISPLAY_OFF);   /* Turn off display */
     if (LCD_OK != config_ret) return config_ret;
     
-    HAL_Delay(LCD_INIT_DELAY_1MS);
+    port_delay_ms(LCD_INIT_DELAY_1MS);
     config_ret = lcd_send_cmd_internal(LCD_CMD_CLEAR_DISPLAY); /* Clear display */
     if (LCD_OK != config_ret) return config_ret;
     
-    HAL_Delay(LCD_CLEAR_DELAY_2MS);
+    port_delay_ms(LCD_CLEAR_DELAY_2MS);
     config_ret = lcd_send_cmd_internal(LCD_CMD_ENTRY_MODE);    /* Entry mode: increment cursor */
     if (LCD_OK != config_ret) return config_ret;
     
-    HAL_Delay(LCD_INIT_DELAY_1MS);
+    port_delay_ms(LCD_INIT_DELAY_1MS);
     config_ret = lcd_send_cmd_internal(LCD_CMD_DISPLAY_ON);    /* Display on, cursor off */
     
     return config_ret;
@@ -303,7 +265,7 @@ static LCD_RET lcd_config(void)
 LCD_RET lcd_init(void)
 {
 	LCD_RET init_ret = LCD_OK;
-	lcd_i2c_init();
+	port_i2c_init();
 	lcd_config();
 	return init_ret;
 }
@@ -329,6 +291,6 @@ LCD_RET lcd_put_cur(int row, int col) {
 
 LCD_RET lcd_clear(void){
     lcd_send_cmd_internal(0x01);
-    HAL_Delay(1);
+    port_delay_ms(1);
     return LCD_OK;
 }

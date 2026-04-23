@@ -9,6 +9,7 @@
 "./Drivers/API/Src/API_lcd.o"
 "./Drivers/API/Src/API_mcp23s17.o"
 "./Drivers/APP/Src/APP_system.o"
+"./Drivers/ARCH/Src/port_stm32f446re.o"
 "./Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal.o"
 "./Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_cortex.o"
 "./Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_dma.o"

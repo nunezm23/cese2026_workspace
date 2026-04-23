@@ -14,6 +14,8 @@
 #include "API_lcd.h"
 #include "API_delay.h"
 
+#include "port.h"
+
 /**
  * @brief Maximum size of password.
  * */
@@ -173,15 +175,6 @@ static bool_t is_array_zero(void);
 static bool_t system_verify_password(char key_pressed);
 
 /**
- * @brief Initializes GPIO ports and configures SPI chip select pin.
- * @note Enables GPIO clocks and configures MCP23S17 SPI interface.
- * 
- * @return SYSTEM_RET Status code.
- * @retval SYS_OK on successful initialization, SYS_ERROR on failure.
- * */
-static SYSTEM_RET system_gpio_init(void);
-
-/**
  * @brief Initializes debounce delay timer for the system.
  * @note Configures delay with NO_ACTION_INIT_TICK milliseconds timeout.
  * 
@@ -212,7 +205,7 @@ static SYSTEM_RET system_login_pwd(void)
 	lcd_send_string("Dev configured");
 	lcd_put_cur(1, 0);
 	lcd_send_string("Enter the pwd:");
-	HAL_Delay(1500);
+	port_delay_ms(1500);
 	return SYS_OK;
 }
 
@@ -253,7 +246,7 @@ static SYSTEM_RET system_access_msg(void)
 	lcd_send_string("Successfull");
 	lcd_put_cur(3, 0);
 	lcd_send_string("CESE 2026 Co26");
-	HAL_Delay(2000);
+	port_delay_ms(2000);
 	return SYS_OK;
 }
 
@@ -277,7 +270,7 @@ static SYSTEM_RET system_save_password(void)
 	lcd_put_cur(2, 0);
 	lcd_send_string("Password saved.");
 	system_state = SYSTEM_IDLE;
-	HAL_Delay(1500);
+	port_delay_ms(1500);
 	return SYS_OK;
 }
 
@@ -339,51 +332,9 @@ static bool_t system_verify_password(char key_pressed)
 	return pwd_ret;
 }
 
-static SYSTEM_RET system_gpio_init(void)
-{
-  GPIO_InitTypeDef GPIO_InitStruct = {0};
-
-  /* GPIO Ports Clock Enable */
-  __HAL_RCC_GPIOC_CLK_ENABLE();
-  __HAL_RCC_GPIOH_CLK_ENABLE();
-  __HAL_RCC_GPIOA_CLK_ENABLE();
-  __HAL_RCC_GPIOB_CLK_ENABLE();
-
-  GPIO_TypeDef *mcp_spi_port = NULL;
-  uint16_t spi_cs_pin = 0;
-  
-  /* Retrieve SPI port and chip select pin from MCP module */
-  mcp_get_spi_port((void **)&mcp_spi_port);
-  mcp_get_spi_cs_pin(&spi_cs_pin);
-
-  /* Validate retrieved port pointer */
-  if (NULL == mcp_spi_port)
-  {
-    return SYS_ERR_NULL_POINTER; /* Invalid GPIO port retrieved */
-  }
-
-  /* Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(mcp_spi_port, spi_cs_pin, GPIO_PIN_SET);
-  
-  /* Configure GPIO pin : SPI_CS_Pin */
-  GPIO_InitStruct.Pin = spi_cs_pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(mcp_spi_port, &GPIO_InitStruct);
-  
-  return SYS_OK;
-}
-
 static SYSTEM_RET system_delay_init(void)
 {
 	SYSTEM_RET ret = SYS_OK;
-	
-	/* Validate delay structure before initialization */
-	if (NULL == &delay_debounce_bt)
-	{
-		return SYS_ERR_NULL_POINTER;
-	}
 	
 	delayInit(&delay_debounce_bt, NO_ACTION_INIT_TICK);
 	return ret;
@@ -472,7 +423,7 @@ SYSTEM_RET system_fsm_state_update(void)
 	default:
 		return SYS_ERR_UNKNOWN; /* Invalid state detected */
 	}
-	HAL_Delay(250);
+	port_delay_ms(250);
 	return ret;
 }
 
@@ -481,7 +432,7 @@ SYSTEM_RET system_init(void)
 	SYSTEM_RET ret = SYS_OK;
 	
 	/* Initialize GPIO ports and SPI interface */
-	ret = system_gpio_init();
+	ret = port_gpio_init();
 	if (SYS_OK != ret)
 	{
 		return ret; /* GPIO initialization failed */
