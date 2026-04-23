@@ -21,8 +21,6 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "API_lcd.h"
-#include "API_mcp23s17.h"
 #include "APP_system.h"
 /* USER CODE END Includes */
 
@@ -90,20 +88,6 @@ int main(void)
 
   system_init();
   /* USER CODE BEGIN 2 */
-  lcd_put_cur(0, 0);
-  lcd_send_string("Testing LCD");
-
-  lcd_put_cur(1, 0);
-  lcd_send_string("Marcos Nunez");
-
-  lcd_put_cur(2, 0);
-  lcd_send_string("PdM Project");
-
-  lcd_put_cur(3, 0);
-  lcd_send_string("CESE 2026");
-
-  HAL_Delay(2000);
-  lcd_clear();
   /* USER CODE END 2 */
 
   /* Infinite loop */
