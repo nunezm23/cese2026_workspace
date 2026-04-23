@@ -25,7 +25,7 @@
  * @brief Debouncing time to wait until to verify the if the action was carried out correctly.
  * @warning The time is in milliseconds
  * */
-#define NO_ACTION_INIT_TICK		5000
+#define NO_ACTION_INIT_TICK		10000
 
 
 /**
@@ -57,9 +57,9 @@ static char system_key_pressed;
 static uint8_t offset_cfg_password = APP_RESET_VALUE;
 
 /**
- *@brief Instance of delay_t struct for the toggle pin.
+ *@brief Instance of delay_t struct for the timer during FSM states.
  * */
-static delay_t delay_debounce_bt = {APP_RESET_VALUE};
+static delay_t delay_fsm_stage = {APP_RESET_VALUE};
 
 /**
  * @brief Array to save the password entered by the user.
@@ -336,7 +336,7 @@ static SYSTEM_RET system_delay_init(void)
 {
 	SYSTEM_RET ret = SYS_OK;
 	
-	delayInit(&delay_debounce_bt, NO_ACTION_INIT_TICK);
+	delayInit(&delay_fsm_stage, NO_ACTION_INIT_TICK);
 	return ret;
 }
 
@@ -395,12 +395,20 @@ SYSTEM_RET system_fsm_state_update(void)
 			{
 				return ret; /* Error setting password */
 			}
+		}else if(delayRead(&delay_fsm_stage))
+		{
+			system_state = SYSTEM_IDLE;
+			idle_msg = true;
 		}
 		break;
 	case SYSTEM_ENTER_PASSWORD:
 		if(APP_RESET_VALUE != system_key_pressed)
 		{
 			system_verify_password(system_key_pressed);
+		}else if(delayRead(&delay_fsm_stage))
+		{
+			system_state = SYSTEM_IDLE;
+			idle_msg = true;
 		}
 		break;
 	case SYSTEM_SAVE_PASSWORD:
