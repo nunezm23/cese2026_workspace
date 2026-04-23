@@ -229,7 +229,7 @@ static SYSTEM_RET system_idle_msg(void)
 	lcd_put_cur(1, 0);
 	lcd_send_string("Designed by:");
 	lcd_put_cur(2, 0);
-	lcd_send_string("Marcos Nunez:");
+	lcd_send_string("Marcos Nunez");
 	lcd_put_cur(3, 0);
 	lcd_send_string("CESE 2026 Co26");
 	return SYS_OK;
@@ -246,7 +246,7 @@ static SYSTEM_RET system_access_msg(void)
 	lcd_send_string("Successfull");
 	lcd_put_cur(3, 0);
 	lcd_send_string("CESE 2026 Co26");
-	port_delay_ms(2000);
+	port_delay_ms(3000);
 	return SYS_OK;
 }
 
@@ -390,6 +390,7 @@ SYSTEM_RET system_fsm_state_update(void)
 	case SYSTEM_SET_PASSWORD:
 		if(APP_RESET_VALUE != system_key_pressed)
 		{
+			delayInit(&delay_fsm_stage, NO_ACTION_INIT_TICK);
 			ret = system_set_password(system_key_pressed);
 			if (SYS_OK != ret)
 			{
@@ -404,6 +405,7 @@ SYSTEM_RET system_fsm_state_update(void)
 	case SYSTEM_ENTER_PASSWORD:
 		if(APP_RESET_VALUE != system_key_pressed)
 		{
+			delayInit(&delay_fsm_stage, NO_ACTION_INIT_TICK);
 			system_verify_password(system_key_pressed);
 		}else if(delayRead(&delay_fsm_stage))
 		{
