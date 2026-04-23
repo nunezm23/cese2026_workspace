@@ -345,7 +345,7 @@ static bool_t system_verify_password(char key_pressed)
 	if(login_pwd_offset < MAX_SIZE_PASSWORD)
 	{
 		login_user_password[login_pwd_offset] = key_pressed;
-		lcd_put_cur(LCD_SECOND_ROW_IDX, login_pwd_offset);
+		lcd_put_cur(LCD_THIRD_ROW_IDX, login_pwd_offset);
 		lcd_send_data(key_pressed);
 		login_pwd_offset++;
 	}
@@ -353,7 +353,7 @@ static bool_t system_verify_password(char key_pressed)
 	{
 		/* Password entry complete, verify against stored password */
 		int cmp_result = strncmp((const char *)login_user_password, (const char *)curr_password, MAX_SIZE_PASSWORD);
-		if(0 == cmp_result)
+		if(APP_RESET_VALUE == cmp_result)
 		{
 			/* Password matches - grant access */
 			system_state = SYSTEM_ACCESS;
@@ -396,9 +396,9 @@ static SYSTEM_RET system_delay_init(void)
 static SYSTEM_RET system_timeout_msg(void)
 {
 	lcd_clear();
-	lcd_put_cur(LCD_FIRST_ROW_IDX, LCD_COL_IDX_0);
-	lcd_send_string("      TIMEOUT   ");
 	lcd_put_cur(LCD_SECOND_ROW_IDX, LCD_COL_IDX_0);
+	lcd_send_string("      TIMEOUT   ");
+	lcd_put_cur(LCD_THIRD_ROW_IDX, LCD_COL_IDX_0);
 	lcd_send_string("      REACHED   ");
 	port_delay_ms(DELAY_1500_MS);
 	return SYS_OK;
