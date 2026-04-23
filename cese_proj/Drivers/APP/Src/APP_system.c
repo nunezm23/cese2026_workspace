@@ -183,6 +183,15 @@ static bool_t system_verify_password(char key_pressed);
  * */
 static SYSTEM_RET system_delay_init(void);
 
+/**
+ * @brief Displays timeout message on LCD display when user interaction times out.
+ * @note Used in SYSTEM_SET_PASSWORD and SYSTEM_ENTER_PASSWORD states to indicate session timeout.
+ * 
+ * @return SYSTEM_RET Status code.
+ * @retval SYS_OK on success.
+ */
+static SYSTEM_RET system_timeout_msg(void);
+
 static SYSTEM_RET system_set_password(char key_pressed)
 {
 	if(MAX_SIZE_PASSWORD == offset_cfg_password)
@@ -340,6 +349,17 @@ static SYSTEM_RET system_delay_init(void)
 	return ret;
 }
 
+static SYSTEM_RET system_timeout_msg(void)
+{
+	lcd_clear();
+	lcd_put_cur(1, 0);
+	lcd_send_string("      TIMEOUT   ");
+	lcd_put_cur(2, 0);
+	lcd_send_string("      REACHED   ");
+	port_delay_ms(1500);
+	return SYS_OK;
+}
+
 SYSTEM_RET system_fsm_state_update(void)
 {
 	SYSTEM_RET ret = SYS_OK;
@@ -398,6 +418,7 @@ SYSTEM_RET system_fsm_state_update(void)
 			}
 		}else if(delayRead(&delay_fsm_stage))
 		{
+			system_timeout_msg();
 			system_state = SYSTEM_IDLE;
 			idle_msg = true;
 		}
@@ -409,6 +430,7 @@ SYSTEM_RET system_fsm_state_update(void)
 			system_verify_password(system_key_pressed);
 		}else if(delayRead(&delay_fsm_stage))
 		{
+			system_timeout_msg();
 			system_state = SYSTEM_IDLE;
 			idle_msg = true;
 		}
