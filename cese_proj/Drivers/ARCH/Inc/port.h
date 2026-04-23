@@ -24,6 +24,19 @@
 #define PORT_RESET_VALUE		0U
 
 /**
+ * @brief Error types for port functions.
+ */
+typedef enum
+{
+	PORT_OK = 0,              /**< Port operation successful */
+	PORT_ERR_INIT,            /**< Initialization error */
+	PORT_ERR_NULL_POINTER,    /**< Null pointer error */
+	PORT_ERR_INVALID_PARAMS,  /**< Invalid parameters error */
+	PORT_ERR_NO_KEYS_PRESSED, /**< No keys pressed error */
+	PORT_ERR_UNKNOWN,         /**< Unknown error */
+}port_err_t;
+
+/**
  * @brief Transmits data over I2C as a master.
  * @note This function abstracts the HAL_I2C_Master_Transmit for portability.
  * 

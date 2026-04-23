@@ -27,6 +27,50 @@
  * */
 #define NO_ACTION_INIT_TICK		10000
 
+/**
+ * @brief Index for the first row on the LCD display.
+ * */
+#define LCD_FIRST_ROW_IDX	0
+
+/**
+ * @brief Index for the second row on the LCD display.
+ * */
+#define LCD_SECOND_ROW_IDX	1
+
+/**
+ * @brief Index for the third row on the LCD display.
+ * */
+#define LCD_THIRD_ROW_IDX	2
+
+/**
+ * @brief Index for the fourth row on the LCD display.
+ * */
+#define LCD_FOURTH_ROW_IDX	3
+
+/**
+ * @brief Index for the first column on the LCD display.
+ * */
+#define LCD_COL_IDX_0		0
+
+/**
+ * @brief Index for the second column on the LCD display.
+ * */
+#define LCD_COL_IDX_1		2
+
+/**
+ * @brief Delay for 1500 milliseconds.
+ */
+#define DELAY_1500_MS			1500
+
+/**
+ * @brief Delay for 3000 milliseconds.
+ */
+#define DELAY_3000_MS			3000
+
+/**
+ * @brief Delay for 250 milliseconds.
+ */
+#define DELAY_250_MS			250
 
 /**
  * @brief Secure access system states for the FSM.
@@ -210,22 +254,22 @@ static SYSTEM_RET system_set_password(char key_pressed)
 static SYSTEM_RET system_login_pwd(void)
 {
 	lcd_clear();
-	lcd_put_cur(0, 0);
+	lcd_put_cur(LCD_FIRST_ROW_IDX, LCD_COL_IDX_0);
 	lcd_send_string("Dev configured");
-	lcd_put_cur(1, 0);
+	lcd_put_cur(LCD_SECOND_ROW_IDX, LCD_COL_IDX_0);
 	lcd_send_string("Enter the pwd:");
-	port_delay_ms(1500);
+	port_delay_ms(DELAY_1500_MS);
 	return SYS_OK;
 }
 
 static SYSTEM_RET system_valid_cfg_msg(void)
 {
 	lcd_clear();
-	lcd_put_cur(0, 0);
+	lcd_put_cur(LCD_FIRST_ROW_IDX, LCD_COL_IDX_0);
 	lcd_send_string("Validating config");
-	lcd_put_cur(1, 0);
+	lcd_put_cur(LCD_SECOND_ROW_IDX, LCD_COL_IDX_0);
 	lcd_send_string("PWD not detected");
-	lcd_put_cur(2, 0);
+	lcd_put_cur(LCD_THIRD_ROW_IDX, LCD_COL_IDX_0);
 	lcd_send_string("Enter a password:");
 	return SYS_OK;
 }
@@ -233,13 +277,13 @@ static SYSTEM_RET system_valid_cfg_msg(void)
 static SYSTEM_RET system_idle_msg(void)
 {
 	lcd_clear();
-	lcd_put_cur(0, 0);
+	lcd_put_cur(LCD_FIRST_ROW_IDX, LCD_COL_IDX_0);
 	lcd_send_string("Security System");
-	lcd_put_cur(1, 0);
+	lcd_put_cur(LCD_SECOND_ROW_IDX, LCD_COL_IDX_0);
 	lcd_send_string("Designed by:");
-	lcd_put_cur(2, 0);
+	lcd_put_cur(LCD_THIRD_ROW_IDX, LCD_COL_IDX_0);
 	lcd_send_string("Marcos Nunez");
-	lcd_put_cur(3, 0);
+	lcd_put_cur(LCD_FOURTH_ROW_IDX, LCD_COL_IDX_0);
 	lcd_send_string("CESE 2026 Co26");
 	return SYS_OK;
 }
@@ -247,15 +291,15 @@ static SYSTEM_RET system_idle_msg(void)
 static SYSTEM_RET system_access_msg(void)
 {
 	lcd_clear();
-	lcd_put_cur(0, 0);
+	lcd_put_cur(LCD_FIRST_ROW_IDX, LCD_COL_IDX_0);
 	lcd_send_string("Security System");
-	lcd_put_cur(1, 0);
+	lcd_put_cur(LCD_SECOND_ROW_IDX, LCD_COL_IDX_0);
 	lcd_send_string("Access");
-	lcd_put_cur(2, 0);
+	lcd_put_cur(LCD_THIRD_ROW_IDX, LCD_COL_IDX_0);
 	lcd_send_string("Successfull");
-	lcd_put_cur(3, 0);
+	lcd_put_cur(LCD_FOURTH_ROW_IDX, LCD_COL_IDX_0);
 	lcd_send_string("CESE 2026 Co26");
-	port_delay_ms(3000);
+	port_delay_ms(DELAY_3000_MS);
 	return SYS_OK;
 }
 
@@ -269,17 +313,17 @@ static SYSTEM_RET system_reset_resources(void)
 static SYSTEM_RET system_save_password(void)
 {
 	lcd_clear();
-	lcd_put_cur(0, 0);
+	lcd_put_cur(LCD_FIRST_ROW_IDX, LCD_COL_IDX_0);
 	lcd_send_string("Saving password:");
 	for(size_t i = APP_RESET_VALUE; i < MAX_SIZE_PASSWORD; i++)
 	{
-		lcd_put_cur(1, i);
+		lcd_put_cur(LCD_SECOND_ROW_IDX, i);
 		lcd_send_data(curr_password[i]);
 	}
-	lcd_put_cur(2, 0);
+	lcd_put_cur(LCD_THIRD_ROW_IDX, LCD_COL_IDX_0);
 	lcd_send_string("Password saved.");
 	system_state = SYSTEM_IDLE;
-	port_delay_ms(1500);
+	port_delay_ms(DELAY_1500_MS);
 	return SYS_OK;
 }
 
@@ -301,7 +345,7 @@ static bool_t system_verify_password(char key_pressed)
 	if(login_pwd_offset < MAX_SIZE_PASSWORD)
 	{
 		login_user_password[login_pwd_offset] = key_pressed;
-		lcd_put_cur(2, login_pwd_offset);
+		lcd_put_cur(LCD_SECOND_ROW_IDX, login_pwd_offset);
 		lcd_send_data(key_pressed);
 		login_pwd_offset++;
 	}
@@ -326,13 +370,13 @@ static bool_t system_verify_password(char key_pressed)
 				return pwd_ret;
 			}
 			fail_pwd_count++;
-			lcd_put_cur(3, 0);
+			lcd_put_cur(LCD_FOURTH_ROW_IDX, LCD_COL_IDX_0);
 			uint8_t attempt_left = (3U - fail_pwd_count);
 			char caracter_lcd = (char)(attempt_left + '0');
 			lcd_send_data(caracter_lcd);
-			lcd_put_cur(3, 2);
+			lcd_put_cur(LCD_FOURTH_ROW_IDX, LCD_COL_IDX_1);
 			lcd_send_string("Attempt left");
-			lcd_put_cur(2, APP_RESET_VALUE);
+			lcd_put_cur(LCD_THIRD_ROW_IDX, LCD_COL_IDX_0);
 			lcd_send_string("               ");
 			system_state = SYSTEM_ENTER_PASSWORD;
 			system_reset_resources();
@@ -352,11 +396,11 @@ static SYSTEM_RET system_delay_init(void)
 static SYSTEM_RET system_timeout_msg(void)
 {
 	lcd_clear();
-	lcd_put_cur(1, 0);
+	lcd_put_cur(LCD_FIRST_ROW_IDX, LCD_COL_IDX_0);
 	lcd_send_string("      TIMEOUT   ");
-	lcd_put_cur(2, 0);
+	lcd_put_cur(LCD_SECOND_ROW_IDX, LCD_COL_IDX_0);
 	lcd_send_string("      REACHED   ");
-	port_delay_ms(1500);
+	port_delay_ms(DELAY_1500_MS);
 	return SYS_OK;
 }
 
@@ -457,7 +501,7 @@ SYSTEM_RET system_fsm_state_update(void)
 	default:
 		return SYS_ERR_UNKNOWN; /* Invalid state detected */
 	}
-	port_delay_ms(250);
+	port_delay_ms(DELAY_250_MS);
 	return ret;
 }
 
