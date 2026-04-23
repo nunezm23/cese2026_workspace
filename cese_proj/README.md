@@ -5,33 +5,125 @@ The system features a 4-digit password-based authentication mechanism, a matrix 
 and an LCD display for user feedback. Access is controlled through an I/O expander and password validation.
 
 > [!WARNING]
-> This project is an advanced demonstration of embedded systems integration, combining SPI communication,
+> This project is a demonstration of embedded systems integration, combining SPI communication,
 > I2C display control, and finite state machine (FSM) design patterns for security applications.
 
 ## Characteristics
 
-The project is organized around four main functional areas:
+The project follows a layered architecture with clear separation of concerns:
 
-1. **LCD Display API** (`API_lcd`): manages a 16x4 character display via I2C communication using an I/O expander.
-2. **Keypad Controller API** (`API_mcp23s17`): handles the MCP23S17 SPI-based I/O expander for matrix keypad scanning.
-3. **Delay Utility API** (`API_delay`): provides non-blocking delay mechanisms for timing and debouncing.
-4. **System Application** (`APP_system`): implements the main FSM-based access control logic with password configuration and validation.
+1. **Hardware Abstraction Layer (ARCH/Port)**: platform-specific I2C, SPI, GPIO, and delay functions that abstract STM32 HAL operations.
+2. **LCD Display API** (`API_lcd`): manages a 16x4 character display via I2C communication using an I/O expander.
+3. **Keypad Controller API** (`API_mcp23s17`): handles the MCP23S17 SPI-based I/O expander for matrix keypad scanning.
+4. **Delay Utility API** (`API_delay`): provides non-blocking delay mechanisms for timing and debouncing.
+5. **System Application** (`APP_system`): implements the main FSM-based access control logic with password configuration and validation.
 
 ## Code Structure
 
-The important modules are under `Drivers/API`, `Drivers/APP`, and `Core`:
+The project follows a **layered architecture** with clear separation between hardware abstraction and application logic:
 
+```
+┌─────────────────────────────────────┐
+│  Application Layer (APP)            │
+│  - APP_system: FSM & Access Control │
+└────────────┬────────────────────────┘
+             │
+┌────────────┴────────────────────────┐
+│  API Layer (Drivers/API)            │
+│  - API_lcd: LCD Display             │
+│  - API_mcp23s17: Keypad Scanning    │
+│  - API_delay: Non-blocking Timers   │
+└────────────┬────────────────────────┘
+             │
+┌────────────┴────────────────────────┐
+│  ARCH/Port Layer (Hardware Abstraction)
+│  - port.h / port_stm32f446re.c      │
+│  - Abstracts I2C, SPI, GPIO, Timers │
+└────────────┬────────────────────────┘
+             │
+┌────────────┴────────────────────────┐
+│  HAL / Hardware Layer               │
+│  - STM32 HAL, STM32F4xx drivers     │
+└─────────────────────────────────────┘
+```
+
+### File Organization:
+
+**Hardware Abstraction (ARCH/Port):**
+- `Drivers/ARCH/port.h` — Port interface definitions for platform-independent access to hardware.
+- `Drivers/ARCH/Src/port_stm32f446re.c` — STM32F446RE specific implementations of I2C, SPI, GPIO, and timing functions.
+
+**API Layer:**
 - `Drivers/API/API_lcd.h` / `API_lcd.c` — LCD display initialization and character/string output via I2C.
 - `Drivers/API/API_mcp23s17.h` / `API_mcp23s17.c` — MCP23S17 I/O expander initialization and keypad scanning via SPI.
 - `Drivers/API/API_delay.h` / `API_delay.c` — Non-blocking delay implementation for timing-critical operations.
 - `Drivers/API/API_common.h` — Common definitions and types used across all APIs.
+
+**Application Layer:**
 - `Drivers/APP/APP_system.h` / `APP_system.c` — main application logic with FSM for secure access control.
+
+**Core/HAL:**
 - `Core/Src/main.c` / `Core/Inc/main.h` — HAL setup and application entry point.
+
+
+## Architecture: Hardware Abstraction Layer (ARCH/Port)
+
+### Purpose and Design Philosophy
+
+The ARCH/Port layer serves as a **platform abstraction boundary** between the STM32 HAL and the application APIs. 
+This design approach provides:
+
+- **Portability**: APIs depend on the port interface, not directly on HAL. Porting to a different microcontroller requires only updating port implementations.
+- **Maintainability**: Hardware-specific code is centralized, making it easier to manage and debug.
+- **Testability**: Port functions can be mocked or replaced for testing without modifying application logic.
+- **Decoupling**: Application and API layers are isolated from HAL changes and microcontroller specifics.
+
+### Port Functions
+
+The port layer abstracts the following core functionalities:
+
+**I2C Communication:**
+```c
+uint8_t port_i2c_init(void);
+uint8_t port_i2c_master_transmit(uint16_t DevAddress, uint8_t *pData, 
+                                  uint16_t Size, uint32_t Timeout);
+```
+
+**SPI Communication:**
+```c
+uint8_t port_spi_init(void);
+uint8_t port_spi_master_transmit(uint8_t *pData, uint16_t Size, uint32_t Timeout);
+uint8_t port_spi_master_receive(uint8_t *pData, uint16_t Size, uint32_t Timeout);
+```
+
+**GPIO Control:**
+```c
+uint8_t port_spi_cs_high(void);  /* Set SPI chip select high */
+uint8_t port_spi_cs_low(void);   /* Set SPI chip select low */
+```
+
+**Timing and Delays:**
+```c
+uint8_t port_delay_ms(uint32_t ms);  /* Blocking delay */
+uint32_t port_get_tick(void);         /* Get current system tick in milliseconds */
+```
+
+### STM32F446RE Implementation
+
+The file `port_stm32f446re.c` provides the hardware-specific implementations:
+
+- **I2C1**: Configured at 100 kHz for LCD display communication via PCF8574 I/O expander
+- **SPI1**: Configured for MCP23S17 I/O expander communication (keypad scanning)
+- **GPIO (GPIOB Pin 6)**: SPI chip select line control
+- **System Tick**: Used for non-blocking delay and timing operations
+
+All HAL function calls are encapsulated within the port layer, ensuring clean interfaces for upper layers.
 
 
 ## API: LCD Display (API_lcd)
 
 Purpose: manage a 16x4 character LCD display and I2C communication for user interface output.
+This API builds on top of the port layer's I2C abstraction.
 
 Key definitions:
 
@@ -51,7 +143,8 @@ LCD_RET lcd_clear(void);
 
 Behavior notes:
 
-- `lcd_init` initializes the I2C peripheral and configures the HD44780 display controller in 4-bit mode.
+- `lcd_init` initializes the port's I2C interface and configures the HD44780 display controller in 4-bit mode.
+- All I2C operations use `port_i2c_master_transmit()` from the port layer, maintaining hardware independence.
 - `lcd_send_string` transmits a null-terminated string to the display.
 - `lcd_put_cur` sets the cursor position using HD44780 addressing scheme (row, column coordinates).
 - All I2C operations include timing delays to ensure proper signal propagation.
@@ -60,10 +153,11 @@ Behavior notes:
 ## API: Keypad Controller (API_mcp23s17)
 
 Purpose: manage the MCP23S17 I/O expander and scan a matrix keypad for user input via SPI bus.
+This API builds on top of the port layer's SPI and GPIO abstractions.
 
 Key definitions:
 
-- MCP23S17 16-bit I/O expander communicates via SPI.
+- MCP23S17 16-bit I/O expander communicates via SPI port layer functions.
 - Matrix keypad scanning (rows and columns configured as GPIO through the expander).
 - Debounce delay to filter spurious key presses.
 
@@ -76,15 +170,18 @@ char mcp_scan_keypad(void);
 
 Behavior notes:
 
-- `mcp_init` configures the MCP23S17 chip and initializes SPI communication.
-- `mcp_scan_keypad` performs row-by-row scanning to detect pressed keys and returns the ASCII character
-  representing the key (or 0 if no key is pressed).
+- `mcp_init` configures the MCP23S17 chip using port SPI functions and initializes SPI communication.
+- `mcp_scan_keypad` performs row-by-row scanning using `port_spi_master_transmit()` and 
+  `port_spi_master_receive()` to detect pressed keys.
+- SPI chip select is managed via `port_spi_cs_high()` and `port_spi_cs_low()` port functions.
+- Returns the ASCII character representing the key (or 0 if no key is pressed).
 - Debouncing is applied to prevent key bounce errors during scanning.
 
 
 ## API: Delay Utility (API_delay)
 
-Purpose: provide non-blocking delay mechanisms using SysTick timer for embedded timing requirements.
+Purpose: provide non-blocking delay mechanisms using the port layer's SysTick timer abstraction
+for embedded timing requirements.
 
 Key definitions:
 
@@ -100,9 +197,10 @@ void delay_write(delay_t *delay, tick_t duration);
 
 Behavior notes:
 
-- Delays are implemented using non-blocking polling via SysTick timer.
+- Delays are implemented using non-blocking polling via the port's `port_get_tick()` function.
 - `delay_init` initializes a delay_t structure with a duration in milliseconds.
-- `delay_read` checks if the delay period has elapsed (returns true when complete).
+- `delay_read` checks if the delay period has elapsed (returns true when complete) using system ticks.
+- The port layer abstracts the underlying SysTick mechanism, allowing hardware independence.
 - Enables concurrent operation of multiple independent timers.
 
 
