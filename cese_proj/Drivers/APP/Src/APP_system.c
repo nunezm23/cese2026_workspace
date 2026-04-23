@@ -419,6 +419,8 @@ SYSTEM_RET system_fsm_state_update(void)
 		}else if(delayRead(&delay_fsm_stage))
 		{
 			system_timeout_msg();
+			memset(curr_password, 0xFF, sizeof(curr_password));
+			offset_cfg_password = APP_RESET_VALUE;
 			system_state = SYSTEM_IDLE;
 			idle_msg = true;
 		}
