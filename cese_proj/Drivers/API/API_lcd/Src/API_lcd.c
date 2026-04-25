@@ -224,39 +224,39 @@ static LCD_RET lcd_config(void)
     /* HD44780 power-up sequence for 4-bit mode initialization */
     /* These delays and commands are critical for proper initialization */
     
-    port_delay_ms(LCD_INIT_DELAY_50MS);
+    port_lcd_delay_ms(LCD_INIT_DELAY_50MS);
     config_ret = lcd_send_cmd_internal(LCD_CMD_INIT_8BIT_1);
     if (LCD_OK != config_ret) return config_ret;
     
-    port_delay_ms(LCD_INIT_DELAY_5MS);
+    port_lcd_delay_ms(LCD_INIT_DELAY_5MS);
     config_ret = lcd_send_cmd_internal(LCD_CMD_INIT_8BIT_1);
     if (LCD_OK != config_ret) return config_ret;
     
-    port_delay_ms(LCD_INIT_DELAY_1MS);
+    port_lcd_delay_ms(LCD_INIT_DELAY_1MS);
     config_ret = lcd_send_cmd_internal(LCD_CMD_INIT_8BIT_1);
     if (LCD_OK != config_ret) return config_ret;
     
-    port_delay_ms(LCD_INIT_DELAY_10MS);
+    port_lcd_delay_ms(LCD_INIT_DELAY_10MS);
     config_ret = lcd_send_cmd_internal(LCD_CMD_SWITCH_4BIT);  /* Switch to 4-bit mode */
     if (LCD_OK != config_ret) return config_ret;
     
-    port_delay_ms(LCD_INIT_DELAY_10MS);
+    port_lcd_delay_ms(LCD_INIT_DELAY_10MS);
     config_ret = lcd_send_cmd_internal(LCD_CMD_FUNCTION_SET);  /* Function set: 4-bit, 2 lines, 5x8 */
     if (LCD_OK != config_ret) return config_ret;
     
-    port_delay_ms(LCD_INIT_DELAY_1MS);
+    port_lcd_delay_ms(LCD_INIT_DELAY_1MS);
     config_ret = lcd_send_cmd_internal(LCD_CMD_DISPLAY_OFF);   /* Turn off display */
     if (LCD_OK != config_ret) return config_ret;
     
-    port_delay_ms(LCD_INIT_DELAY_1MS);
+    port_lcd_delay_ms(LCD_INIT_DELAY_1MS);
     config_ret = lcd_send_cmd_internal(LCD_CMD_CLEAR_DISPLAY); /* Clear display */
     if (LCD_OK != config_ret) return config_ret;
     
-    port_delay_ms(LCD_CLEAR_DELAY_2MS);
+    port_lcd_delay_ms(LCD_CLEAR_DELAY_2MS);
     config_ret = lcd_send_cmd_internal(LCD_CMD_ENTRY_MODE);    /* Entry mode: increment cursor */
     if (LCD_OK != config_ret) return config_ret;
     
-    port_delay_ms(LCD_INIT_DELAY_1MS);
+    port_lcd_delay_ms(LCD_INIT_DELAY_1MS);
     config_ret = lcd_send_cmd_internal(LCD_CMD_DISPLAY_ON);    /* Display on, cursor off */
     
     return config_ret;
@@ -347,7 +347,13 @@ LCD_RET lcd_clear(void)
         return clear_ret; /* Error sending clear command */
     }
     
-    port_delay_ms(LCD_CLEAR_DELAY_2MS);
+    port_lcd_delay_ms(LCD_CLEAR_DELAY_2MS);
     
     return LCD_OK;
+}
+
+uint8_t port_lcd_delay_ms(uint32_t ms)
+{
+    HAL_Delay(ms);
+    return DELAY_OK;
 }

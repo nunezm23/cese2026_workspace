@@ -92,4 +92,14 @@ LCD_RET lcd_put_cur(int row, int col);
  * */
 LCD_RET lcd_clear(void);
 
+/**
+ * @brief   Delays execution for a specified number of milliseconds.
+ * 
+ * @param[in] ms    Number of milliseconds to delay.
+ * 
+ * @return uint8_t 
+ * @retval 0U on success, 1U on error.
+ */
+uint8_t port_lcd_delay_ms(uint32_t ms);
+
 #endif /* __API_lcd_H */
