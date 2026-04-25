@@ -48,4 +48,57 @@ char mcp_scan_keypad(void);
  */
 MCP_RET mcp_init(void);
 
+/**
+ * @brief  Initializes the GPIO pins for SPI communication.
+ * 
+ * @return uint8_t 
+ */
+uint8_t port_gpio_init(void);
+
+/**
+ * @brief   Initializes the SPI peripheral for master mode communication.
+ * 
+ * @return uint8_t 
+ * @retval 0U on success, 1U on initialization failure.
+ */
+uint8_t port_spi_init(void);
+
+/**
+ * @brief   Sets the SPI chip select pin high.
+ * 
+ * @return uint8_t 
+ */
+uint8_t port_gpio_set_cs_pin(void);
+
+/**
+ * @brief   Resets the SPI chip select pin.
+ * 
+ * @return uint8_t 
+ */
+uint8_t port_gpio_reset_cs_pin(void);
+
+/**
+ * @brief   Transmits data over SPI as a master.
+ * 
+ * @param[in] pData         Data pointer.
+ * @param[in] Size          Data size.
+ * @param[in] Timeout       Timeout value.
+ *  
+ * @return uint8_t
+ * @retval 0U on success, 1U on error.
+ */
+uint8_t port_spi_master_transmit(uint8_t *pData, uint16_t Size, uint32_t Timeout);
+
+/**
+ * @brief   Receives data over SPI as a master.
+ * 
+ * @param[in] pData         Data pointer to store received data.
+ * @param[in] Size          Data size.
+ * @param[in] Timeout       Timeout value.
+ *  
+ * @return uint8_t
+ * @retval 0U on success, 1U on error.
+ */
+uint8_t port_spi_master_receive(uint8_t *pData, uint16_t Size, uint32_t Timeout);
+
 #endif /* __API_mcp23s17_H */
