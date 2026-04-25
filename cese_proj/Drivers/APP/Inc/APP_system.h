@@ -11,12 +11,14 @@
 #ifndef __APP_system_H /**< To prevent recursive inclusion*/
 #define __APP_system_H
 
+#include <stdint.h>
+
 #define SYSTEM_RET		int8_t
 
 /**
  * @brief Reset value for the application.
  */
-#define APP_RESET_VALUE		API_RESET_VALUE
+#define APP_RESET_VALUE		0x00U
 
 /**
  * @brief Error types for system functions.

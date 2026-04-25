@@ -1,6 +1,6 @@
 
 
-
+#include "API_mcp23s17.H"
 #include "stm32f4xx_hal.h"
 
 
@@ -43,7 +43,7 @@ uint8_t port_spi_init(void)
     hal_ret = HAL_SPI_Init(&hspi1);
     if (HAL_OK != hal_ret)
     {
-        return PORT_ERR_INIT;
+        return MCP_ERR_INIT;
     }
     
     return MCP_OK;
@@ -63,7 +63,7 @@ uint8_t port_gpio_reset_cs_pin(void)
 
 uint8_t port_gpio_init(void)
 {
-    GPIO_InitTypeDef GPIO_InitStruct = {PORT_RESET_VALUE};
+    GPIO_InitTypeDef GPIO_InitStruct = {MCP_RESET_VALUE};
 
     /* GPIO Ports Clock Enable */
     __HAL_RCC_GPIOC_CLK_ENABLE();
@@ -84,9 +84,9 @@ uint8_t port_gpio_init(void)
 
 uint8_t port_spi_master_transmit(uint8_t *pData, uint16_t Size, uint32_t Timeout)
 {
-    if(NULL == pData || PORT_RESET_VALUE == Size)
+    if(NULL == pData || MCP_RESET_VALUE == Size)
     {
-        return PORT_ERR_INVALID_PARAMS;
+        return MCP_ERR_INVALID_PARAMS;
     }
 
     HAL_StatusTypeDef hal_ret;
@@ -94,7 +94,7 @@ uint8_t port_spi_master_transmit(uint8_t *pData, uint16_t Size, uint32_t Timeout
     hal_ret = HAL_SPI_Transmit(&hspi1, pData, Size, Timeout);
     if (HAL_OK != hal_ret)
     {
-        return PORT_ERR_UNKNOWN;
+        return MCP_ERR_UNKNOWN;
     }
     
     return MCP_OK;
@@ -102,9 +102,9 @@ uint8_t port_spi_master_transmit(uint8_t *pData, uint16_t Size, uint32_t Timeout
 
 uint8_t port_spi_master_receive(uint8_t *pData, uint16_t Size, uint32_t Timeout)
 {
-    if(NULL == pData || PORT_RESET_VALUE == Size)
+    if(NULL == pData || MCP_RESET_VALUE == Size)
     {
-        return PORT_ERR_NULL_POINTER;
+        return MCP_ERR_NULL_POINTER;
     }
 
     HAL_StatusTypeDef hal_ret;
@@ -112,7 +112,7 @@ uint8_t port_spi_master_receive(uint8_t *pData, uint16_t Size, uint32_t Timeout)
     hal_ret = HAL_SPI_Receive(&hspi1, pData, Size, Timeout);
     if (HAL_OK != hal_ret)
     {
-        return PORT_ERR_UNKNOWN;
+        return MCP_ERR_UNKNOWN;
     }
     
     return MCP_OK;

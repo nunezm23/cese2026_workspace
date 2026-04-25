@@ -9,7 +9,7 @@
 */
 
 #include "API_lcd.h"
-#include "port.h"
+#include <string.h>
 
 /**
  * @brief I2C slave address for LCD display with backlight controller (PCF8574).

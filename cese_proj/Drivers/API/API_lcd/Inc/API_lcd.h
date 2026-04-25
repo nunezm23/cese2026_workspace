@@ -11,11 +11,18 @@
 #ifndef __API_lcd_H /**< To prevent recursive inclusion*/
 #define __API_lcd_H
 
+#include <stdint.h>
+
 /**
  * @brief LCD return type definition.
  * @note Used for function return status codes in LCD API.
  */
 #define	LCD_RET		int8_t
+
+/**
+ * @brief   LCD reset value for initializations or default states.
+ */
+#define LCD_RESET_VALUE	0x00U
 
 /**
  * @brief LCD error types.

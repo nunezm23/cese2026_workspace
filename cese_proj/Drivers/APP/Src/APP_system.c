@@ -14,6 +14,8 @@
 #include "API_lcd.h"
 #include "API_delay.h"
 
+#include <string.h>
+
 /**
  * @brief Maximum size of password.
  * */

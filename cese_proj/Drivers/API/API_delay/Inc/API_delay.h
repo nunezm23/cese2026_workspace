@@ -12,6 +12,9 @@
 #ifndef __API_delay_H /**< To prevent recursive inclusion*/
 #define __API_delay_H
 
+#include <stdbool.h>
+#include <stdint.h>
+
 /**
  * @brief Bool type redefinition
  * */
@@ -21,6 +24,18 @@ typedef bool bool_t;
  * @brief Tick type of uint32_t
  * */
 typedef uint32_t tick_t;
+
+/**
+ * @brief Delay error types.
+ */
+typedef enum
+{
+	DELAY_OK = 0,             /**< Delay process successful */
+	DELAY_ERR_INIT,           /**< Delay initialization error */
+	DELAY_ERR_NULL_POINTER,   /**< Null pointer error in function parameters */
+	DELAY_ERR_INVALID_PARAMS, /**< Invalid parameters provided to function */
+	DELAY_ERR_UNKNOWN,        /**< Unknown error occurred */
+}delay_err_t;
 
 /**
  * @brief Delay struct that contains relevants parameters for implementation.

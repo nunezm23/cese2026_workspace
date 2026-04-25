@@ -19,6 +19,11 @@
 #define MCP_RET		int8_t
 
 /**
+ * @brief   Reset value for MCP23S17 initializations or default states.
+ */
+#define MCP_RESET_VALUE  0x00U
+
+/**
  * @brief Error types for MCP23S17 API functions.
  * @note Used for consistent error handling across MCP23S17 operations.
  */

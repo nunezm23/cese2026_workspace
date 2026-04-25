@@ -13,7 +13,7 @@
  * @brief Including header file for API implementation
  * */
 #include "API_delay.h"
-#include "port.h"
+#include <string.h>
 
 /**
  * @brief Invalid tick parameter to set in delayWrite function when the duration is 0.
