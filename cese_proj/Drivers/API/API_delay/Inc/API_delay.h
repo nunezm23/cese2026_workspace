@@ -12,8 +12,15 @@
 #ifndef __API_delay_H /**< To prevent recursive inclusion*/
 #define __API_delay_H
 
-/** Standard C definitions */
-#include "API_common.h"
+/**
+ * @brief Bool type redefinition
+ * */
+typedef bool bool_t;
+
+/**
+ * @brief Tick type of uint32_t
+ * */
+typedef uint32_t tick_t;
 
 /**
  * @brief Delay struct that contains relevants parameters for implementation.
