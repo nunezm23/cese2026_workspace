@@ -5,23 +5,26 @@
 
 # Add inputs and outputs from these tool invocations to the build variables 
 C_SRCS += \
-../Drivers/APP/Src/APP_system.c 
+../Drivers/API/API_delay/Src/API_delay.c \
+../Drivers/API/API_delay/Src/port_delay.c 
 
 OBJS += \
-./Drivers/APP/Src/APP_system.o 
+./Drivers/API/API_delay/Src/API_delay.o \
+./Drivers/API/API_delay/Src/port_delay.o 
 
 C_DEPS += \
-./Drivers/APP/Src/APP_system.d 
+./Drivers/API/API_delay/Src/API_delay.d \
+./Drivers/API/API_delay/Src/port_delay.d 
 
 
 # Each subdirectory must supply rules for building sources it contributes
-Drivers/APP/Src/%.o Drivers/APP/Src/%.su Drivers/APP/Src/%.cyclo: ../Drivers/APP/Src/%.c Drivers/APP/Src/subdir.mk
+Drivers/API/API_delay/Src/%.o Drivers/API/API_delay/Src/%.su Drivers/API/API_delay/Src/%.cyclo: ../Drivers/API/API_delay/Src/%.c Drivers/API/API_delay/Src/subdir.mk
 	arm-none-eabi-gcc "$<" -mcpu=cortex-m4 -std=gnu11 -g3 -DDEBUG -DUSE_HAL_DRIVER -DSTM32F446xx -c -I../Core/Inc -I../Drivers/STM32F4xx_HAL_Driver/Inc -I../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy -I../Drivers/CMSIS/Device/ST/STM32F4xx/Include -I../Drivers/CMSIS/Include -I"C:/Users/mnnun/OneDrive/Desktop/cese2026_workspace/cese_proj/Drivers/API" -I"C:/Users/mnnun/OneDrive/Desktop/cese2026_workspace/cese_proj/Drivers/APP" -I"C:/Users/mnnun/OneDrive/Desktop/cese2026_workspace/cese_proj/Drivers/APP/Inc" -I"C:/Users/mnnun/OneDrive/Desktop/cese2026_workspace/cese_proj/Drivers/APP/Src" -I"C:/Users/mnnun/OneDrive/Desktop/cese2026_workspace/cese_proj/Drivers/API/API_delay" -I"C:/Users/mnnun/OneDrive/Desktop/cese2026_workspace/cese_proj/Drivers/API/API_delay/Inc" -I"C:/Users/mnnun/OneDrive/Desktop/cese2026_workspace/cese_proj/Drivers/API/API_delay/Src" -I"C:/Users/mnnun/OneDrive/Desktop/cese2026_workspace/cese_proj/Drivers/API/API_lcd" -I"C:/Users/mnnun/OneDrive/Desktop/cese2026_workspace/cese_proj/Drivers/API/API_lcd/Inc" -I"C:/Users/mnnun/OneDrive/Desktop/cese2026_workspace/cese_proj/Drivers/API/API_lcd/Src" -I"C:/Users/mnnun/OneDrive/Desktop/cese2026_workspace/cese_proj/Drivers/API/API_mcp23s17" -I"C:/Users/mnnun/OneDrive/Desktop/cese2026_workspace/cese_proj/Drivers/API/API_mcp23s17/Inc" -I"C:/Users/mnnun/OneDrive/Desktop/cese2026_workspace/cese_proj/Drivers/API/API_mcp23s17/Src" -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -fcyclomatic-complexity -MMD -MP -MF"$(@:%.o=%.d)" -MT"$@" --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -o "$@"
 
-clean: clean-Drivers-2f-APP-2f-Src
+clean: clean-Drivers-2f-API-2f-API_delay-2f-Src
 
-clean-Drivers-2f-APP-2f-Src:
-	-$(RM) ./Drivers/APP/Src/APP_system.cyclo ./Drivers/APP/Src/APP_system.d ./Drivers/APP/Src/APP_system.o ./Drivers/APP/Src/APP_system.su
+clean-Drivers-2f-API-2f-API_delay-2f-Src:
+	-$(RM) ./Drivers/API/API_delay/Src/API_delay.cyclo ./Drivers/API/API_delay/Src/API_delay.d ./Drivers/API/API_delay/Src/API_delay.o ./Drivers/API/API_delay/Src/API_delay.su ./Drivers/API/API_delay/Src/port_delay.cyclo ./Drivers/API/API_delay/Src/port_delay.d ./Drivers/API/API_delay/Src/port_delay.o ./Drivers/API/API_delay/Src/port_delay.su
 
-.PHONY: clean-Drivers-2f-APP-2f-Src
+.PHONY: clean-Drivers-2f-API-2f-API_delay-2f-Src
 

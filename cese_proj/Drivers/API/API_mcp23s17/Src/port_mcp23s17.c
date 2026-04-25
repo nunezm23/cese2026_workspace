@@ -46,19 +46,19 @@ uint8_t port_spi_init(void)
         return PORT_ERR_INIT;
     }
     
-    return PORT_OK;
+    return MCP_OK;
 }
 
 uint8_t port_gpio_set_cs_pin(void)
 {
     HAL_GPIO_WritePin(SPI_CS_GPIO_Port, SPI_CS_Pin, GPIO_PIN_SET);
-    return PORT_OK;
+    return MCP_OK;
 }
 
 uint8_t port_gpio_reset_cs_pin(void)
 {
     HAL_GPIO_WritePin(SPI_CS_GPIO_Port, SPI_CS_Pin, GPIO_PIN_RESET);
-    return PORT_OK;
+    return MCP_OK;
 }
 
 uint8_t port_gpio_init(void)
@@ -79,7 +79,7 @@ uint8_t port_gpio_init(void)
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
     HAL_GPIO_Init(SPI_CS_GPIO_Port, &GPIO_InitStruct);
     
-    return PORT_OK;
+    return MCP_OK;
 }
 
 uint8_t port_spi_master_transmit(uint8_t *pData, uint16_t Size, uint32_t Timeout)
@@ -97,7 +97,7 @@ uint8_t port_spi_master_transmit(uint8_t *pData, uint16_t Size, uint32_t Timeout
         return PORT_ERR_UNKNOWN;
     }
     
-    return PORT_OK;
+    return MCP_OK;
 }
 
 uint8_t port_spi_master_receive(uint8_t *pData, uint16_t Size, uint32_t Timeout)
@@ -115,5 +115,5 @@ uint8_t port_spi_master_receive(uint8_t *pData, uint16_t Size, uint32_t Timeout)
         return PORT_ERR_UNKNOWN;
     }
     
-    return PORT_OK;
+    return MCP_OK;
 }

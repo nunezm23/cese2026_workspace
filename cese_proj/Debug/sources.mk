@@ -24,8 +24,9 @@ C_DEPS :=
 SUBDIRS := \
 Core/Src \
 Core/Startup \
-Drivers/API/Src \
+Drivers/API/API_delay/Src \
+Drivers/API/API_lcd/Src \
+Drivers/API/API_mcp23s17/Src \
 Drivers/APP/Src \
-Drivers/ARCH/Src \
 Drivers/STM32F4xx_HAL_Driver/Src \
 

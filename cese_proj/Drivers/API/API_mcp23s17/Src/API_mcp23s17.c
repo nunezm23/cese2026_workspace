@@ -9,7 +9,6 @@
 */
 
 #include "API_mcp23s17.h"
-#include "port.h"
 
 /**
  * @brief MCP23S17 I2C hardware address (pins tied to GND).

@@ -13,7 +13,20 @@
 #define __API_delay_H
 
 /** Standard C definitions */
-#include "API_common.h"
+#include <stdint.h>
+#include <stdbool.h>
+
+/**
+ * @brief Delay error types.
+ */
+typedef enum
+{
+	DELAY_OK = 0,             /**< Delay process successful */
+	DELAY_ERR_INIT,           /**< Delay initialization error */
+	DELAY_ERR_NULL_POINTER,   /**< Null pointer error in function parameters */
+	DELAY_ERR_INVALID_PARAMS, /**< Invalid parameters provided to function */
+	DELAY_ERR_UNKNOWN,        /**< Unknown error occurred */
+}delay_err_t;
 
 /**
  * @brief Delay struct that contains relevants parameters for implementation.

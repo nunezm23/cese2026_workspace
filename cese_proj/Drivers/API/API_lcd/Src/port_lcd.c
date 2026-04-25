@@ -31,7 +31,7 @@ uint8_t port_i2c_init(void)
         return PORT_ERR_INIT;
     }
 
-    return PORT_OK;
+    return LCD_OK;
 }
 
 uint8_t port_i2c_master_transmit(uint16_t DevAddress, uint8_t *pData, uint16_t Size, uint32_t Timeout)
@@ -39,7 +39,7 @@ uint8_t port_i2c_master_transmit(uint16_t DevAddress, uint8_t *pData, uint16_t S
     if(NULL == pData || PORT_RESET_VALUE == Size)
     {
         return PORT_ERR_INVALID_PARAMS;
-    }
+    
 
     HAL_StatusTypeDef hal_ret;
 
@@ -49,5 +49,5 @@ uint8_t port_i2c_master_transmit(uint16_t DevAddress, uint8_t *pData, uint16_t S
         return PORT_ERR_UNKNOWN;
     }
     
-    return PORT_OK;
+    return LCD_OK;
 }
