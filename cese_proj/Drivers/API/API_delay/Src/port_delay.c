@@ -1,3 +1,12 @@
+/**
+  ******************************************************************************
+  * @file           : port_delay.c
+  * @brief          : Porting layer for delay functions using STM32 HAL library.
+  * @author			: Marcos Nuñez
+  * @version		: 1.0.0
+  ******************************************************************************
+*/
+
 #include "stm32f4xx_hal.h"
 #include "API_delay.h"
 

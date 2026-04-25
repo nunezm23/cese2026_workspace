@@ -1,6 +1,14 @@
+/**
+  ******************************************************************************
+  * @file           : port_lcd.c
+  * @brief          : Porting layer for LCD functions using STM32 HAL library.
+  * @author			: Marcos Nuñez
+  * @version		: 1.0.0
+  ******************************************************************************
+*/
 
-#include "stm32f4xx_hal.h"
 #include "API_lcd.h"
+#include "stm32f4xx_hal.h"
 
 /**
  * @brief I2C peripheral handler instance.

@@ -1,8 +1,14 @@
-
+/**
+  ******************************************************************************
+  * @file           : port_mcp23s17.c
+  * @brief          : Porting layer for MCP23S17 functions using STM32 HAL library.
+  * @author			: Marcos Nuñez
+  * @version		: 1.0.0
+  ******************************************************************************
+*/
 
 #include "API_mcp23s17.H"
 #include "stm32f4xx_hal.h"
-
 
 /**
  * @brief SPI peripheral handler instance.
@@ -20,8 +26,6 @@ static SPI_HandleTypeDef hspi1;
  * @brief GPIO port for SPI Chip Select (CS) pin.
  */
 #define SPI_CS_GPIO_Port 	GPIOB
-
-
 
 uint8_t port_spi_init(void)
 {
