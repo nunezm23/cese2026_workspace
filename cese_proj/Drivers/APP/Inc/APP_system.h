@@ -11,8 +11,6 @@
 #ifndef __APP_system_H /**< To prevent recursive inclusion*/
 #define __APP_system_H
 
-#include "API_common.h"
-
 #define SYSTEM_RET		int8_t
 
 /**

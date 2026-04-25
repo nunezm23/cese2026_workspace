@@ -11,8 +11,6 @@
 #ifndef __API_lcd_H /**< To prevent recursive inclusion*/
 #define __API_lcd_H
 
-#include "API_common.h"
-
 /**
  * @brief LCD return type definition.
  * @note Used for function return status codes in LCD API.

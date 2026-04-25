@@ -11,8 +11,6 @@
 #ifndef __API_mcp23s17_H /**< To prevent recursive inclusion*/
 #define __API_mcp23s17_H
 
-#include "API_common.h"
-
 /**
  * @brief Ret type for MCP23S17 API functions.
  */
