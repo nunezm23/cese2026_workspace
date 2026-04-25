@@ -28,12 +28,14 @@ The project follows a **layered architecture** with clear separation between har
 │  - APP_system: FSM & Access Control │
 └────────────┬────────────────────────┘
              │
-┌────────────┴────────────────────────┐
-│  API Layer (Drivers/API)            │
-│  - API_lcd: LCD Display             │
-│  - API_mcp23s17: Keypad Scanning    │
-│  - API_delay: Non-blocking Timers   │
-└────────────┬────────────────────────┘
+┌────────────┴────────────────────────────────────────────┐
+│  API Layer (Drivers/API - Modularized)                  │
+│  ┌──────────────────┬────────────────┬─────────────┐   │
+│  │  API_lcd/        │  API_mcp23s17/ │ API_delay/  │   │
+│  │  - LCD Display   │  - Keypad      │ - Timers    │   │
+│  │  - I2C comm      │  - SPI comm    │ - Non-block │   │
+│  └──────────────────┴────────────────┴─────────────┘   │
+└────────────┬────────────────────────────────────────────┘
              │
 ┌────────────┴────────────────────────┐
 │  ARCH/Port Layer (Hardware Abstraction)
@@ -53,11 +55,10 @@ The project follows a **layered architecture** with clear separation between har
 - `Drivers/ARCH/port.h` — Port interface definitions for platform-independent access to hardware.
 - `Drivers/ARCH/Src/port_stm32f446re.c` — STM32F446RE specific implementations of I2C, SPI, GPIO, and timing functions.
 
-**API Layer:**
-- `Drivers/API/API_lcd.h` / `API_lcd.c` — LCD display initialization and character/string output via I2C.
-- `Drivers/API/API_mcp23s17.h` / `API_mcp23s17.c` — MCP23S17 I/O expander initialization and keypad scanning via SPI.
-- `Drivers/API/API_delay.h` / `API_delay.c` — Non-blocking delay implementation for timing-critical operations.
-- `Drivers/API/API_common.h` — Common definitions and types used across all APIs.
+**API Layer (Modularized):**
+- `Drivers/API/API_lcd/Inc/API_lcd.h` / `API_lcd/Src/API_lcd.c` — LCD display initialization and character/string output via I2C.
+- `Drivers/API/API_mcp23s17/Inc/API_mcp23s17.h` / `API_mcp23s17/Src/API_mcp23s17.c` — MCP23S17 I/O expander initialization and keypad scanning via SPI.
+- `Drivers/API/API_delay/Inc/API_delay.h` / `API_delay/Src/API_delay.c` — Non-blocking delay implementation for timing-critical operations.
 
 **Application Layer:**
 - `Drivers/APP/APP_system.h` / `APP_system.c` — main application logic with FSM for secure access control.
@@ -68,114 +69,126 @@ The project follows a **layered architecture** with clear separation between har
 
 ## Architecture: Hardware Abstraction Layer (ARCH/Port)
 
-### Purpose and Design Philosophy
+The project uses a **dual-layer abstraction strategy**:
 
-The ARCH/Port layer serves as a **platform abstraction boundary** between the STM32 HAL and the application APIs. 
-This design approach provides:
+1. **Modularized Port Layer** (API-specific): Each API folder contains its own `port_*.c` file with hardware-specific implementations
+   - `Drivers/API/API_lcd/Src/port_lcd.c` — I2C peripheral abstraction
+   - `Drivers/API/API_mcp23s17/Src/port_mcp23s17.c` — SPI and GPIO abstraction
+   - `Drivers/API/API_delay/Src/port_delay.c` — SysTick timer abstraction
 
-- **Portability**: APIs depend on the port interface, not directly on HAL. Porting to a different microcontroller requires only updating port implementations.
-- **Maintainability**: Hardware-specific code is centralized, making it easier to manage and debug.
-- **Testability**: Port functions can be mocked or replaced for testing without modifying application logic.
-- **Decoupling**: Application and API layers are isolated from HAL changes and microcontroller specifics.
+2. **Central Port Interface** (if used): Shared platform abstraction for common hardware functions
+   - `Drivers/ARCH/port.h` — Unified port interface definitions
+   - `Drivers/ARCH/Src/port_stm32f446re.c` — STM32F446RE specific implementations
 
-### Port Functions
+This modularized approach provides:
 
-The port layer abstracts the following core functionalities:
-
-**I2C Communication:**
-```c
-uint8_t port_i2c_init(void);
-uint8_t port_i2c_master_transmit(uint16_t DevAddress, uint8_t *pData, 
-                                  uint16_t Size, uint32_t Timeout);
-```
-
-**SPI Communication:**
-```c
-uint8_t port_spi_init(void);
-uint8_t port_spi_master_transmit(uint8_t *pData, uint16_t Size, uint32_t Timeout);
-uint8_t port_spi_master_receive(uint8_t *pData, uint16_t Size, uint32_t Timeout);
-```
-
-**GPIO Control:**
-```c
-uint8_t port_spi_cs_high(void);  /* Set SPI chip select high */
-uint8_t port_spi_cs_low(void);   /* Set SPI chip select low */
-```
-
-**Timing and Delays:**
-```c
-uint8_t port_delay_ms(uint32_t ms);  /* Blocking delay */
-uint32_t port_get_tick(void);         /* Get current system tick in milliseconds */
-```
-
-### STM32F446RE Implementation
-
-The file `port_stm32f446re.c` provides the hardware-specific implementations:
-
-- **I2C1**: Configured at 100 kHz for LCD display communication via PCF8574 I/O expander
-- **SPI1**: Configured for MCP23S17 I/O expander communication (keypad scanning)
-- **GPIO (GPIOB Pin 6)**: SPI chip select line control
-- **System Tick**: Used for non-blocking delay and timing operations
-
-All HAL function calls are encapsulated within the port layer, ensuring clean interfaces for upper layers.
+- **Modularity**: Each API is self-contained with its own port layer, simplifying maintenance and updates.
+- **Portability**: Hardware-specific code is isolated per API, making it easy to port individual APIs to different microcontrollers.
+- **Maintainability**: Port functions are grouped logically with their corresponding API layer.
+- **Testability**: Each port layer can be independently tested or mocked without affecting other APIs.
+- **Decoupling**: Application and API layers depend on stable port interfaces, not directly on STM32 HAL.
 
 
 ## API: LCD Display (API_lcd)
 
 Purpose: manage a 16x4 character LCD display and I2C communication for user interface output.
-This API builds on top of the port layer's I2C abstraction.
+This API builds on top of modularized I2C abstraction via `port_lcd.c`.
 
-Key definitions:
+**Hardware Configuration:**
+- **Display**: 16 columns × 4 rows HD44780 LCD controller
+- **Communication**: I2C1 peripheral at **100 kHz** clock speed
+- **I/O Expander**: PCF8574 I2C-based 8-bit expander (address mode: 7-bit)
+- **Duty Cycle**: I2C_DUTYCYCLE_2 for standard mode operation
+- **Addressing**: 7-bit addressing mode, no general call or dual address support
 
-- LCD display dimensions: 16 columns × 4 rows
-- I2C-based communication using PCF8574 I/O expander
-- HD44780 controller compatibility (4-bit mode operation)
-
-Relevant functions:
+**Port Layer Functions** (`API_lcd/Src/port_lcd.c`):
 
 ```c
-LCD_RET lcd_init(void);
-LCD_RET lcd_send_data(uint8_t data);
-LCD_RET lcd_send_string(char *str);
-LCD_RET lcd_put_cur(int row, int col);
-LCD_RET lcd_clear(void);
+uint8_t port_i2c_init(void);
+uint8_t port_i2c_master_transmit(uint16_t DevAddress, uint8_t *pData, uint16_t Size, uint32_t Timeout);
+uint8_t port_lcd_delay_ms(uint32_t ms);
 ```
 
-Behavior notes:
+**API Functions**:
 
-- `lcd_init` initializes the port's I2C interface and configures the HD44780 display controller in 4-bit mode.
-- All I2C operations use `port_i2c_master_transmit()` from the port layer, maintaining hardware independence.
-- `lcd_send_string` transmits a null-terminated string to the display.
-- `lcd_put_cur` sets the cursor position using HD44780 addressing scheme (row, column coordinates).
-- All I2C operations include timing delays to ensure proper signal propagation.
+```c
+LCD_RET lcd_init(void);           /* Initialize LCD and I2C */
+LCD_RET lcd_send_data(uint8_t data);  /* Send single character */
+LCD_RET lcd_send_string(char *str);   /* Send string to display */
+LCD_RET lcd_put_cur(int row, int col); /* Set cursor position */
+LCD_RET lcd_clear(void);          /* Clear display */
+```
+
+**Error Codes**:
+```c
+LCD_OK              /* Successful operation */
+LCD_ERR_INIT        /* I2C initialization failure */
+LCD_ERR_INVALID_PARAMS  /* NULL pointer or invalid data */
+LCD_ERR_UNKNOWN     /* HAL I2C communication error */
+```
+
+**Behavior Notes**:
+
+- `lcd_init` initializes I2C1 at 100 kHz and configures the HD44780 in 4-bit mode with proper timing delays.
+- Parameter validation: checks for NULL pointers and zero-length data before transmission.
+- `lcd_send_string` sends null-terminated strings with proper 4-bit mode enable sequencing.
+- `lcd_put_cur` uses HD44780 DDRAM addressing scheme for cursor positioning.
+- All I2C operations include timing delays via `port_lcd_delay_ms()` to ensure proper signal propagation and I2C bus compliance.
 
 
 ## API: Keypad Controller (API_mcp23s17)
 
 Purpose: manage the MCP23S17 I/O expander and scan a matrix keypad for user input via SPI bus.
-This API builds on top of the port layer's SPI and GPIO abstractions.
+This API builds on top of modularized SPI and GPIO abstractions via `port_mcp23s17.c`.
 
-Key definitions:
+**Hardware Configuration:**
+- **I/O Expander**: MCP23S17 16-bit expander communicates via SPI1 peripheral
+- **Communication**: SPI Master mode, 8-bit data size
+  - **Clock Polarity**: SPI_POLARITY_LOW (CPOL = 0)
+  - **Clock Phase**: SPI_PHASE_1EDGE (CPHA = 0)
+  - **Baud Rate**: SPI_BAUDRATEPRESCALER_16 (derived from SPI1 input clock)
+  - **Data Transfer**: MSB first, software NSS (Chip Select) control
+- **Chip Select Pin**: GPIO Pin 6 on Port B (GPIOB), active low
+- **GPIO Ports Enabled**: GPIOC, GPIOH, GPIOA, GPIOB
 
-- MCP23S17 16-bit I/O expander communicates via SPI port layer functions.
-- Matrix keypad scanning (rows and columns configured as GPIO through the expander).
-- Debounce delay to filter spurious key presses.
-
-Main functions:
+**Port Layer Functions** (`API_mcp23s17/Src/port_mcp23s17.c`):
 
 ```c
-MCP_RET mcp_init(void);
-char mcp_scan_keypad(void);
+uint8_t port_spi_init(void);
+uint8_t port_gpio_init(void);
+uint8_t port_gpio_set_cs_pin(void);    /* Set CS high */
+uint8_t port_gpio_reset_cs_pin(void);  /* Set CS low */
+uint8_t port_spi_master_transmit(uint8_t *pData, uint16_t Size, uint32_t Timeout);
+uint8_t port_spi_master_receive(uint8_t *pData, uint16_t Size, uint32_t Timeout);
+uint8_t port_mcp_delay_ms(uint32_t ms);
 ```
 
-Behavior notes:
+**API Functions**:
 
-- `mcp_init` configures the MCP23S17 chip using port SPI functions and initializes SPI communication.
-- `mcp_scan_keypad` performs row-by-row scanning using `port_spi_master_transmit()` and 
-  `port_spi_master_receive()` to detect pressed keys.
-- SPI chip select is managed via `port_spi_cs_high()` and `port_spi_cs_low()` port functions.
-- Returns the ASCII character representing the key (or 0 if no key is pressed).
-- Debouncing is applied to prevent key bounce errors during scanning.
+```c
+MCP_RET mcp_init(void);           /* Initialize MCP23S17 and SPI */
+char mcp_scan_keypad(void);       /* Scan matrix and return pressed key */
+```
+
+**Error Codes**:
+```c
+MCP_OK              /* Successful operation */
+MCP_ERR_INIT        /* SPI initialization failure */
+MCP_ERR_INVALID_PARAMS  /* NULL pointer or invalid data size */
+MCP_ERR_NULL_POINTER    /* Null pointer error */
+MCP_ERR_UNKNOWN     /* HAL SPI communication error */
+MCP_ERR_SPI_COMM    /* SPI communication error */
+```
+
+**Behavior Notes**:
+
+- `mcp_init` configures SPI1 in master mode with proper GPIO and CS pin initialization.
+- GPIO initialization enables all ports (C, H, A, B) to ensure proper STM32 clock gating.
+- CS pin (PB6) is managed via `port_gpio_set_cs_pin()` (HIGH) and `port_gpio_reset_cs_pin()` (LOW) for proper SPI protocol.
+- Parameter validation: checks for NULL pointers and zero-length data before SPI transmission/reception.
+- `mcp_scan_keypad` performs row-by-row matrix scanning using SPI transmit/receive with debounce delays.
+- Returns ASCII character for pressed key or 0 if no key is pressed.
+- All SPI operations include timing delays via `port_mcp_delay_ms()` for debouncing and MCP23S17 response timing.
 
 
 ## API: Delay Utility (API_delay)
@@ -183,25 +196,54 @@ Behavior notes:
 Purpose: provide non-blocking delay mechanisms using the port layer's SysTick timer abstraction
 for embedded timing requirements.
 
-Key definitions:
+**Hardware Configuration:**
+- **Timer Source**: SysTick (ARM Cortex-M4 system timer)
+- **Time Base**: Millisecond resolution via HAL_GetTick()
+- **Implementation**: HAL-based blocking and non-blocking delay mechanisms
 
-- `delay_t` — structure to track delay state and remaining time.
-
-Relevant functions:
+**Port Layer Functions** (`API_delay/Src/port_delay.c`):
 
 ```c
-void delay_init(delay_t *delay, tick_t duration);
-bool_t delay_read(delay_t *delay);
-void delay_write(delay_t *delay, tick_t duration);
+uint8_t port_delay_ms(uint32_t ms);  /* Blocking delay (HAL_Delay wrapper) */
+uint32_t port_get_tick(void);         /* Get current SysTick counter (HAL_GetTick wrapper) */
 ```
 
-Behavior notes:
+**API Functions**:
 
-- Delays are implemented using non-blocking polling via the port's `port_get_tick()` function.
-- `delay_init` initializes a delay_t structure with a duration in milliseconds.
-- `delay_read` checks if the delay period has elapsed (returns true when complete) using system ticks.
-- The port layer abstracts the underlying SysTick mechanism, allowing hardware independence.
-- Enables concurrent operation of multiple independent timers.
+```c
+void delayInit(delay_t *delay, tick_t duration);  /* Initialize delay struct */
+bool_t delayRead(delay_t *delay);                  /* Check if delay elapsed (non-blocking) */
+void delayWrite(delay_t *delay, tick_t duration);  /* Update delay duration */
+```
+
+**Data Structures**:
+
+```c
+typedef struct {
+    tick_t startTime;  /* Timestamp when delay started */
+    tick_t duration;   /* Duration of delay in milliseconds */
+    bool_t running;    /* Flag indicating if delay is active */
+} delay_t;
+```
+
+**Error Codes**:
+```c
+DELAY_OK              /* Successful operation */
+DELAY_ERR_INIT        /* Initialization error */
+DELAY_ERR_INVALID_PARAMS  /* Invalid parameters */
+DELAY_ERR_NULL_POINTER    /* Null pointer error */
+DELAY_ERR_UNKNOWN     /* Unknown error */
+```
+
+**Behavior Notes**:
+
+- `port_delay_ms()` is a blocking delay wrapper around STM32 HAL_Delay() for simple timing.
+- `port_get_tick()` returns current SysTick counter value in milliseconds via HAL_GetTick().
+- `delayInit()` initializes a delay_t structure with start time (current tick) and duration.
+- `delayRead()` performs **non-blocking** polling: compares current tick against (startTime + duration).
+- `delayWrite()` updates delay duration for reusable delay structures.
+- Enables concurrent operation of multiple independent delay timers without blocking the main application.
+- Port layer abstracts hardware-specific SysTick implementation, allowing easy porting to other STM32 variants.
 
 
 ## Application System (APP_system)
