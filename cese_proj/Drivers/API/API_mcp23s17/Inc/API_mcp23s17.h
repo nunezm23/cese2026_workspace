@@ -106,4 +106,14 @@ uint8_t port_spi_master_transmit(uint8_t *pData, uint16_t Size, uint32_t Timeout
  */
 uint8_t port_spi_master_receive(uint8_t *pData, uint16_t Size, uint32_t Timeout);
 
+/**
+ * @brief   Delays execution for a specified number of milliseconds.
+ *
+ * @param[in] ms    Number of milliseconds to delay.
+ *
+ * @return uint8_t
+ * @retval 0U on success, 1U on error.
+ */
+uint8_t port_mcp_delay_ms(uint32_t ms);
+
 #endif /* __API_mcp23s17_H */

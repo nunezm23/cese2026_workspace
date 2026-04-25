@@ -351,9 +351,3 @@ LCD_RET lcd_clear(void)
     
     return LCD_OK;
 }
-
-uint8_t port_lcd_delay_ms(uint32_t ms)
-{
-    HAL_Delay(ms);
-    return DELAY_OK;
-}

@@ -103,28 +103,4 @@ uint8_t port_delay_ms(uint32_t ms);
  */
 uint32_t port_get_tick(void);
 
-/**
- * @brief Transmits data over I2C as a master.
- * @note This function abstracts the HAL_I2C_Master_Transmit for portability.
- * 
- * @param[in] hi2c          I2C handle pointer.
- * @param[in] DevAddress    Device address.
- * @param[in] pData         Data pointer.
- * @param[in] Size          Data size.
- * @param[in] Timeout       Timeout value.
- *  
- * @return uint8_t
- * @retval 0U on success, 1U on error.
- */
-uint8_t port_i2c_master_transmit(uint16_t DevAddress, uint8_t *pData, uint16_t Size, uint32_t Timeout);
-
-/**
- * @brief   Initializes the I2C peripheral.
- * @note    It configures I2C peripheral with standard settings for LCD communication.
- * 
- * @return uint8_t 
- * @retval 0U on success, 1U on initialization failure.
- */
-uint8_t port_i2c_init(void);
-
 #endif /* __API_delay_H */

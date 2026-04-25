@@ -121,3 +121,9 @@ uint8_t port_spi_master_receive(uint8_t *pData, uint16_t Size, uint32_t Timeout)
     
     return MCP_OK;
 }
+
+uint8_t port_mcp_delay_ms(uint32_t ms)
+{
+    HAL_Delay(ms);
+    return MCP_OK;
+}

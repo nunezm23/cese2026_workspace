@@ -165,7 +165,7 @@ char mcp_scan_keypad(void)
         }
 
         /* Give a tiny delay for signal to settle */
-        port_delay_ms(1U);
+        port_mcp_delay_ms(1U);
 
         /* Read the columns (GPA4 to GPA7) */
         uint8_t portStatus = 0;

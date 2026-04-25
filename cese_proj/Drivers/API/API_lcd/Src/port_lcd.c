@@ -60,3 +60,9 @@ uint8_t port_i2c_master_transmit(uint16_t DevAddress, uint8_t *pData, uint16_t S
     
     return LCD_OK;
 }
+
+uint8_t port_lcd_delay_ms(uint32_t ms)
+{
+    HAL_Delay(ms);
+    return LCD_OK;
+}
