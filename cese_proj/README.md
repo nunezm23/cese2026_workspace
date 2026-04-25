@@ -30,30 +30,16 @@ The project follows a **layered architecture** with clear separation between har
              │
 ┌────────────┴────────────────────────────────────────────┐
 │  API Layer (Drivers/API - Modularized)                  │
-│  ┌──────────────────┬────────────────┬─────────────┐   │
-│  │  API_lcd/        │  API_mcp23s17/ │ API_delay/  │   │
-│  │  - LCD Display   │  - Keypad      │ - Timers    │   │
-│  │  - I2C comm      │  - SPI comm    │ - Non-block │   │
-│  └──────────────────┴────────────────┴─────────────┘   │
+│  ┌──────────────────┬────────────────┬─────────────┐    │
+│  │  API_lcd/        │  API_mcp23s17/ │ API_delay/  │    │
+│  │  - LCD Display   │  - Keypad      │ - Timers    │    │
+│  │  - I2C comm      |  - SPI comm    | - Non-block |    |
+│  |  - port HAL      │  - port HAL    │ - Port-Hal  |    |
+│  └──────────────────┴────────────────┴─────────────┘    │
 └────────────┬────────────────────────────────────────────┘
-             │
-┌────────────┴────────────────────────┐
-│  ARCH/Port Layer (Hardware Abstraction)
-│  - port.h / port_stm32f446re.c      │
-│  - Abstracts I2C, SPI, GPIO, Timers │
-└────────────┬────────────────────────┘
-             │
-┌────────────┴────────────────────────┐
-│  HAL / Hardware Layer               │
-│  - STM32 HAL, STM32F4xx drivers     │
-└─────────────────────────────────────┘
 ```
 
 ### File Organization:
-
-**Hardware Abstraction (ARCH/Port):**
-- `Drivers/ARCH/port.h` — Port interface definitions for platform-independent access to hardware.
-- `Drivers/ARCH/Src/port_stm32f446re.c` — STM32F446RE specific implementations of I2C, SPI, GPIO, and timing functions.
 
 **API Layer (Modularized):**
 - `Drivers/API/API_lcd/Inc/API_lcd.h` / `API_lcd/Src/API_lcd.c` — LCD display initialization and character/string output via I2C.
@@ -75,10 +61,6 @@ The project uses a **dual-layer abstraction strategy**:
    - `Drivers/API/API_lcd/Src/port_lcd.c` — I2C peripheral abstraction
    - `Drivers/API/API_mcp23s17/Src/port_mcp23s17.c` — SPI and GPIO abstraction
    - `Drivers/API/API_delay/Src/port_delay.c` — SysTick timer abstraction
-
-2. **Central Port Interface** (if used): Shared platform abstraction for common hardware functions
-   - `Drivers/ARCH/port.h` — Unified port interface definitions
-   - `Drivers/ARCH/Src/port_stm32f446re.c` — STM32F446RE specific implementations
 
 This modularized approach provides:
 
